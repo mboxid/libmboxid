@@ -1,0 +1,12 @@
+﻿---
+BasedOnStyle: LLVM
+AccessModifierOffset: -4
+AlwaysBreakTemplateDeclarations: Yes
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+IndentWidth: 4
+ObjCBlockIndentWidth: 4
+PointerAlignment: Left
+SortIncludes: false
+TabWidth: 4
+...
