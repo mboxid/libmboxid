@@ -9,64 +9,85 @@
 
 namespace mboxid {
 
-enum class modbus_errc {
-    success = 0,
-    illegal_function,
-};
+enum class errc {
+    none = 0,
 
-class modbus_cat : public std::error_category {
-public:
-    const char* name() const noexcept override { return "modbus"; }
-    std::string message(int ec) const override;
-};
+    // mobus protocol exception
+    modbus_exception_illegal_function,
+    modbus_exception_illegal_data_address,
+    modbus_exception_illegal_data_value,
+    modbus_exception_slave_or_server_failure,
+    modbus_exception_acknowledge,
+    modbus_exception_slave_or_server_busy,
+    modbus_exception_negative_acknowledge,
+    modbus_exception_memory_parity,
+    modbus_exception_not_defined,
+    modbus_exception_gateway_path,
+    modbus_exception_gateway_target,
 
-const std::error_category& modbus_category() noexcept;
-
-std::error_code make_error_code(modbus_errc e) noexcept;
-
-enum class general_errc {
-    success = 0,
-    work_in_progress,
+    // libmboxid native errors
     invalid_argument,
+    logic_error,
+    gai_error,
+    passive_open_error,
+    active_open_error,
+    parse_error,
 };
 
-class general_cat : public std::error_category {
+const std::error_category& mboxid_category() noexcept;
+
+std::error_code make_error_code(errc e) noexcept;
+
+/// Base class for libmoxid exceptions.
+class exception : std::system_error {
 public:
-    const char* name() const noexcept override { return "general"; }
-    std::string message(int ec) const override;
+    using std::system_error::system_error;
+    using std::system_error::code;
+    using std::system_error::what;
 };
-
-const std::error_category& general_category() noexcept;
-
-std::error_code make_error_code(general_errc e) noexcept;
 
 /// Exception signaling an error that originate from the operating system.
-class system_error : public std::system_error {
+class system_error : public exception {
 public:
+    system_error(int ev)
+        : exception(ev, std::system_category()) {}
+
     system_error(int ev, const char* what_arg)
-        : std::system_error(ev, std::system_category(), what_arg) {}
+        : exception(ev, std::system_category(), what_arg) {}
+
+    system_error(int ev, const std::string& what_arg)
+        : exception(ev, std::system_category(), what_arg) {}
 };
 
-class modbus_error : public std::system_error {
+class mboxid_error : public exception {
 public:
-    modbus_error(modbus_errc errc, const char* what_arg)
-        : std::system_error(make_error_code(errc), what_arg) {}
+    mboxid_error(errc errc)
+        : exception(make_error_code(errc)) {}
+
+    mboxid_error(errc errc, const char* what_arg)
+        : exception(make_error_code(errc), what_arg) {}
+
+    mboxid_error(errc errc, const std::string& what_arg)
+        : exception(make_error_code(errc), what_arg) {}
 
 };
 
-class general_error : public std::system_error {
-public:
-    general_error(general_errc errc, const char* what_arg)
-        : std::system_error(make_error_code(errc), what_arg) {}
+static inline bool is_modbus_exception(errc e) {
+    return (e > errc::none) && (e < errc::invalid_argument);
+}
 
-};
+static inline bool is_modbus_exception(const exception& e) {
+    return (e.code().category() == mboxid_category()) &&
+            is_modbus_exception(static_cast<errc>(e.code().value()));
+}
 
 } // namespace mboxid
 
-template<>
-struct std::is_error_code_enum<mboxid::modbus_errc> : public true_type {};
+namespace std {
 
-template<>
-struct std::is_error_code_enum<mboxid::general_errc> : public true_type {};
+template <>
+struct is_error_code_enum<mboxid::errc> : public true_type {};
+
+} // namespace std
 
 #endif // LIBMBOXID_ERROR_HPP

@@ -10,7 +10,7 @@
 namespace mboxid {
 
 template <typename T>
-    requires std::is_integral_v<T>
+    requires std::is_integral_v<T> || std::is_enum_v<T>
 std::size_t fetch8(T& dst, const std::uint8_t* buf) {
     std::uint8_t v;
     static_assert(sizeof(T) >= sizeof(v));
@@ -21,7 +21,7 @@ std::size_t fetch8(T& dst, const std::uint8_t* buf) {
 }
 
 template <typename T>
-    requires std::is_integral_v<T>
+    requires std::is_integral_v<T> || std::is_enum_v<T>
 std::size_t fetch16_be(T& dst, const std::uint8_t* buf) {
     std::uint16_t v;
     static_assert(sizeof(T) >= sizeof(v));
@@ -32,7 +32,7 @@ std::size_t fetch16_be(T& dst, const std::uint8_t* buf) {
 }
 
 template <typename T>
-    requires std::is_integral_v<T>
+    requires std::is_integral_v<T> || std::is_enum_v<T>
 std::size_t store8(std::uint8_t* buf, const T val)
 {
     auto v = static_cast<std::uint8_t>(val);
@@ -41,7 +41,7 @@ std::size_t store8(std::uint8_t* buf, const T val)
 }
 
 template <typename T>
-requires std::is_integral_v<T>
+    requires std::is_integral_v<T> || std::is_enum_v<T>
 std::size_t store16_be(std::uint8_t* buf, const T val)
 {
     auto v = static_cast<std::uint16_t>(val);

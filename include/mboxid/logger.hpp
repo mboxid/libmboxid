@@ -7,7 +7,7 @@
 #include <memory>
 #include <string_view>
 
-namespace mboxid {
+namespace mboxid::log {
 
 class logger_base {
 public:

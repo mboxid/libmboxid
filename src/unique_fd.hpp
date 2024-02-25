@@ -12,22 +12,22 @@ namespace mboxid {
  * Container for a file descriptor that closes the descriptor when it goes
  * out of scope.
  */
-class Unique_fd {
+class unique_fd {
 public:
-    Unique_fd(const Unique_fd&) = delete;
-    Unique_fd& operator=(const Unique_fd&) = delete;
+    unique_fd(const unique_fd&) = delete;
+    unique_fd& operator=(const unique_fd&) = delete;
 
-    Unique_fd() : fd{-1} {}
-    explicit Unique_fd(int fd) : fd{fd} {}
+    unique_fd() : fd{-1} {}
+    explicit unique_fd(int fd) : fd{fd} {}
 
-    Unique_fd(Unique_fd&& other) : fd{other.release()} {}
+    unique_fd(unique_fd&& other) : fd{other.release()} {}
 
-    Unique_fd& operator=(Unique_fd&& other) {
+    unique_fd& operator=(unique_fd&& other) {
         reset(other.release());
         return *this;
     }
 
-    ~Unique_fd() {
+    ~unique_fd() {
         reset();
     }
 

@@ -2,7 +2,7 @@ include(FetchContent)
 
 FetchContent_Declare(fmt
     GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-    GIT_TAG master
+    GIT_TAG e69e5f9 # v10.2.1
     )
 FetchContent_MakeAvailable(fmt)
 
@@ -10,7 +10,8 @@ configure_file(version.cpp.in version.cpp)
 
 add_library(mboxid
     ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
-    error.cpp logger.cpp
+    error.cpp logger.cpp modbus_tcp_server.cpp modbus_tcp_server_impl.cpp
+    network.cpp modbus_protocol.cpp crc32.c
     )
 target_include_directories(mboxid PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

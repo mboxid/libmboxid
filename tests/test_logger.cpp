@@ -4,11 +4,11 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <mboxid/error.hpp>
-#include "logger_impl.hpp"
+#include "logger_private.hpp"
 
 using namespace mboxid;
 
-class LoggerMock : public logger_base {
+class LoggerMock : public log::logger_base {
 public:
     MOCK_METHOD(void, debug, (std::string_view  msg), (const, override));
     MOCK_METHOD(void, info, (std::string_view  msg), (const, override));
@@ -18,8 +18,8 @@ public:
 };
 
 TEST(LoggerTest, InstallInvalidLogger) {
-    EXPECT_THROW(install_logger(std::unique_ptr<logger_base>()),
-        general_error);
+    EXPECT_THROW(install_logger(std::unique_ptr<log::logger_base>()),
+                 mboxid_error);
 }
 
 TEST(LoggerTest, UseLogger) {
@@ -33,15 +33,15 @@ TEST(LoggerTest, UseLogger) {
     EXPECT_CALL(*mock, error(("error 3.17"))).Times(1);
     EXPECT_CALL(*mock, auth("auth 3.18")).Times(1);
 
-    log_debug("debug {}.{}", 3, 14);
-    log_info("info {}", 3.15);
-    log_warning("warning {}.{}", 3, 16);
-    log_error("error {}", "3.17");
-    log_auth("auth {}.{}", 3, 18);
+    log::debug("debug {}.{}", 3, 14);
+    log::info("info {}", 3.15);
+    log::warning("warning {}.{}", 3, 16);
+    log::error("error {}", "3.17");
+    log::auth("auth {}.{}", 3, 18);
 
     // Revert to default logger to avoid the following error when the
     // test is executed:
     //      ERROR: this mock object (used in test LoggerTest.Main) should be
     //      deleted but never is.
-    install_logger(make_standard_logger());
+    install_logger(log::make_standard_logger());
 }

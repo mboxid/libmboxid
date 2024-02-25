@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: BSD-3-Clause
 
 #include <iostream>
-#include "error_impl.hpp"
-#include "logger_impl.hpp"
+#include "error_private.hpp"
+#include "logger_private.hpp"
 
-namespace mboxid {
+namespace mboxid::log {
 
 constexpr auto prefix = "libmboxid: ";
 

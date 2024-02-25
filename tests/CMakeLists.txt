@@ -11,7 +11,9 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-set(TESTS test_unique_fd test_byteorder test_error test_version test_logger)
+set(TESTS test_unique_fd test_byteorder test_error test_version test_logger
+    test_modbus_tcp_server_basics test_network test_modbus_protocol
+    )
 
 include(GoogleTest)
 
@@ -22,4 +24,3 @@ foreach(TEST ${TESTS})
     target_include_directories(${TEST} PRIVATE ${CMAKE_SOURCE_DIR}/src)
     gtest_discover_tests(${TEST})
 endforeach()
-

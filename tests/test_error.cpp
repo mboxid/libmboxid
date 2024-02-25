@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <errno.h>
+#include <cerrno>
 #include <mboxid/error.hpp>
 
 using namespace mboxid;
@@ -18,22 +18,42 @@ TEST(ExceptionsTest, SystemError) {
     EXPECT_THAT(err.what(), HasSubstr("Invalid argument"));
 }
 
-TEST(ExceptionsTest, ModbusError) {
-    modbus_error err(modbus_errc::illegal_function, "hugo");
+TEST(ExceptionsTest, GeneralError) {
+    mboxid_error err(errc::invalid_argument, "hugo");
 
-    EXPECT_EQ(err.code().category(), modbus_category());
+    EXPECT_EQ(err.code().category(), mboxid_category());
     EXPECT_EQ(err.code().value(),
-              static_cast<int>(modbus_errc::illegal_function));
+              static_cast<int>(errc::invalid_argument));
     EXPECT_THAT(err.what(), HasSubstr("hugo"));
-    EXPECT_THAT(err.what(), HasSubstr("illegal function"));
+    EXPECT_THAT(err.what(), HasSubstr("invalid argument"));
 }
 
-TEST(ExceptionsTest, GeneralError) {
-    general_error err(general_errc::work_in_progress, "hugo");
+TEST(ErrorCodeTest, Success) {
+    auto ec = make_error_code(errc::none);
 
-    EXPECT_EQ(err.code().category(), general_category());
-    EXPECT_EQ(err.code().value(),
-              static_cast<int>(general_errc::work_in_progress));
-    EXPECT_THAT(err.what(), HasSubstr("hugo"));
-    EXPECT_THAT(err.what(), HasSubstr("in progress"));
+    EXPECT_EQ(ec, errc());
+}
+
+TEST(ExceptionTest, ModbusException) {
+    {
+        system_error err(static_cast<int>(
+                            errc::modbus_exception_illegal_function));
+        EXPECT_FALSE(is_modbus_exception(err));
+    }
+    {
+        mboxid_error err(errc::none);
+        EXPECT_FALSE(is_modbus_exception(err));
+    }
+    {
+        mboxid_error err(errc::invalid_argument);
+        EXPECT_FALSE(is_modbus_exception(err));
+    }
+    {
+        mboxid_error err(errc::modbus_exception_illegal_function);
+        EXPECT_FALSE(is_modbus_exception(err));
+    }
+    {
+        mboxid_error err(errc::modbus_exception_gateway_target);
+        EXPECT_TRUE(is_modbus_exception(err));
+    }
 }

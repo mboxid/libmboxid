@@ -2,14 +2,16 @@ cmake_minimum_required(VERSION 3.25)
 
 project(libmboxid VERSION 0.0.1
     DESCRIPTION "A Modbus TCP C++ library for unixoid systems"
-    LANGUAGES CXX
+    LANGUAGES C CXX
     )
 
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(src)
 add_subdirectory(tests)
+add_subdirectory(examples)
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
