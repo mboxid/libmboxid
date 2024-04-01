@@ -10,8 +10,15 @@ configure_file(version.cpp.in version.cpp)
 
 add_library(mboxid
     ${CMAKE_CURRENT_BINARY_DIR}/version.cpp
-    error.cpp logger.cpp modbus_tcp_server.cpp modbus_tcp_server_impl.cpp
-    network.cpp modbus_protocol.cpp crc32.c
+    error.cpp
+    logger.cpp
+    network.cpp
+    modbus_tcp_server.cpp
+    modbus_tcp_server_impl.cpp
+    modbus_protocol_common.cpp
+    modbus_protocol_server.cpp
+    modbus_protocol_client.cpp
+    crc32.c
     )
 target_include_directories(mboxid PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

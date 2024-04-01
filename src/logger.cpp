@@ -41,7 +41,7 @@ logger_unique_ptr make_standard_logger() {
 }
 
 void install_logger(logger_unique_ptr new_logger) {
-    validate_argument(new_logger.get(), "install_logger()");
+    validate_argument(new_logger.get(), "install_logger");
     logger = std::move(new_logger);
 }
 

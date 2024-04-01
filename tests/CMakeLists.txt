@@ -12,7 +12,8 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 set(TESTS test_unique_fd test_byteorder test_error test_version test_logger
-    test_modbus_tcp_server_basics test_network test_modbus_protocol
+    test_modbus_tcp_server test_network test_modbus_protocol_common
+    test_modbus_protocol_server
     )
 
 include(GoogleTest)

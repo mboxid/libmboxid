@@ -22,4 +22,14 @@ const char* get_verbose_version()
     return "@PROJECT_NAME@ v@PROJECT_VERSION@";
 }
 
+const char* get_vendor()
+{
+    return "mboxid";
+}
+
+const char* get_product_name()
+{
+    return "@PROJECT_NAME@";
+}
+
 } // namespace mboxid

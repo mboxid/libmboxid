@@ -4,12 +4,12 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <mboxid/error.hpp>
-#include "modbus_protocol.hpp"
+#include "modbus_protocol_common.hpp"
 
 using namespace mboxid;
 using testing::HasSubstr;
 
-TEST(ModbusProtocolTest, ParseMbapHeader) {
+TEST(ModbusProtocolCommonTest, ParseMbapHeader) {
     mbap_header header;
 
     try {
@@ -51,4 +51,11 @@ TEST(ModbusProtocolTest, ParseMbapHeader) {
     EXPECT_EQ(header.protocol_id,  0);
     EXPECT_EQ(header.length,  254);
     EXPECT_EQ(header.unit_id,  1);
+}
+TEST(ModbusProtocolCommonTest, BitToByteCound) {
+    EXPECT_EQ(bit_to_byte_count(1), 1);
+    EXPECT_EQ(bit_to_byte_count(8), 1);
+    EXPECT_EQ(bit_to_byte_count(9), 2);
+    EXPECT_EQ(bit_to_byte_count(16), 2);
+    EXPECT_EQ(bit_to_byte_count(17), 3);
 }

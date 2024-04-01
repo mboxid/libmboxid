@@ -9,7 +9,8 @@
 #include "error_private.hpp"
 #include "logger_private.hpp"
 #include "crc32.h"
-#include "modbus_protocol.hpp"
+#include "modbus_protocol_common.hpp"
+#include "modbus_protocol_server.hpp"
 #include "modbus_tcp_server_impl.hpp"
 
 namespace mboxid {
@@ -62,6 +63,7 @@ void modbus_tcp_server::impl::set_server_addr(std::string_view host,
 
 void modbus_tcp_server::impl::set_backend(
         std::unique_ptr<backend_connector> backend) {
+    validate_argument(backend.get(), "set_backend");
     this->backend = std::move(backend);
 }
 
@@ -116,7 +118,7 @@ int modbus_tcp_server::impl::calc_poll_timeout() {
         return 0;
     to = std::min(to, ceil<milliseconds>(ts_next_backend_ticker - now_));
 
-    return to.count();
+    return static_cast<int>(to.count());
 }
 
 auto modbus_tcp_server::impl::build_monitor_set() -> monitor_set {
@@ -462,7 +464,6 @@ void modbus_tcp_server::impl::send_response(int fd, unsigned int events) {
     rsp = rsp.subspan(cnt);
     if (rsp.empty())
         reset_client_state(client);
-    log::debug("{} bytes sent", cnt);
 }
 
 void modbus_tcp_server::impl::execute_pending_tasks() {

@@ -50,7 +50,7 @@ TEST(ExceptionTest, ModbusException) {
     }
     {
         mboxid_error err(errc::modbus_exception_illegal_function);
-        EXPECT_FALSE(is_modbus_exception(err));
+        EXPECT_TRUE(is_modbus_exception(err));
     }
     {
         mboxid_error err(errc::modbus_exception_gateway_target);

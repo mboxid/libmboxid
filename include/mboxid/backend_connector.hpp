@@ -7,7 +7,10 @@
 #include <iostream>
 #include <cstdint>
 #include <chrono>
+#include <vector>
 #include <mboxid/network.hpp>
+#include <mboxid/error.hpp>
+#include <mboxid/version.hpp>
 
 namespace mboxid {
 
@@ -40,6 +43,50 @@ public:
      */
     virtual void ticker() { }
 
+    virtual errc read_coils(unsigned addr, std::size_t cnt,
+                            std::vector<bool>& bits) {
+        return errc::modbus_exception_slave_or_server_failure;
+    }
+
+    virtual errc read_discrete_inputs(unsigned addr, std::size_t cnt,
+                            std::vector<bool>& bits) {
+        return errc::modbus_exception_slave_or_server_failure;
+    }
+
+    virtual errc read_holding_registers(unsigned addr, std::size_t cnt,
+                            std::vector<std::uint16_t>& regs) {
+        return errc::modbus_exception_slave_or_server_failure;
+    }
+
+    virtual errc read_input_registers(unsigned addr, std::size_t cnt,
+                                        std::vector<std::uint16_t>& regs) {
+        return errc::modbus_exception_slave_or_server_failure;
+    }
+
+    virtual errc write_coils(unsigned addr, const std::vector<bool>& bits) {
+        return errc::modbus_exception_slave_or_server_failure;
+    }
+
+    virtual errc write_holding_registers(unsigned addr,
+                                     const std::vector<std::uint16_t>& regs) {
+        return errc::modbus_exception_slave_or_server_failure;
+    }
+
+    virtual errc write_read_holding_registers(unsigned addr_wr,
+                                      const std::vector<std::uint16_t>& regs_wr,
+                                      unsigned addr_rd, std::size_t cnt_rd,
+                                      std::vector<std::uint16_t>& regs_rd) {
+        return errc::modbus_exception_slave_or_server_failure;
+    }
+
+    virtual errc get_basic_device_identification(
+                std::string& vendor, std::string& product, std::string& version)
+    {
+        vendor = get_vendor();
+        product = get_product_name();
+        version = get_version();
+        return errc::none;
+    }
 };
 
 } // namespace mboxid
