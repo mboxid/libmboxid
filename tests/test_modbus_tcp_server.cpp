@@ -7,11 +7,18 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <mboxid/modbus_tcp_server.hpp>
+#include "network_private.hpp"
 
 using namespace mboxid;
 
 using testing::Exactly;
 using testing::Between;
+using testing::Return;
+
+using std::uint8_t;
+using std::uint16_t;
+using std::size_t;
+using u8vec = std::vector<uint8_t>;
 
 TEST(ModbusTcpServerBasicsTest, Shutdown) {
     using namespace std::chrono_literals;
@@ -29,6 +36,14 @@ class BackendConnectorMock : public backend_connector
 {
 public:
     MOCK_METHOD(void, ticker, (), (override));
+
+    MOCK_METHOD(bool, authorize, (client_id id,const net::endpoint_addr&
+                                                    numeric_client_addr,
+                                  const sockaddr* addr, socklen_t addrlen),
+                (override));
+
+    MOCK_METHOD(void, disconnect, (client_id id), (override));
+    MOCK_METHOD(void, alive, (client_id id), (override));
 };
 
 class ModbusTcpServerTest : public ::testing::Test {
@@ -40,23 +55,82 @@ protected:
         backend = backend_.get();
         server->set_backend(std::move(backend_));
         server_run_thd = std::thread(&modbus_tcp_server::run, &*server);
-        std::cerr << "server started\n";
+
+        // give server time to start
+        usleep(100000);
     }
 
     ~ModbusTcpServerTest() {
         server->shutdown();
         server_run_thd.join();
-        std::cerr << "server stopped\n";
     }
+
 
     BackendConnectorMock* backend;  // owned and freed by the server
     std::unique_ptr<modbus_tcp_server> server;
     std::thread server_run_thd;
 };
 
+int static connect_to_server() {
+    auto endpoints =
+        resolve_endpoint("localhost", "1502", net::ip_protocol_version::v4,
+                         net::endpoint_usage::active_open);
+    auto& ep = endpoints.front();
+
+    int fd;
+
+    if ((fd = socket(ep.family, ep.socktype, ep.protocol)) == -1)
+        return -1;
+
+    if (connect(fd, ep.addr.get(), ep.addrlen) == -1)
+        return -1;
+
+    return fd;
+}
+
+static int receive_all(int fd, uint8_t* buf, size_t cnt) {
+    size_t left = cnt;
+
+    do {
+        ssize_t res;
+        res = TEMP_FAILURE_RETRY(read(fd, &buf[cnt - left], left));
+        if (res < 0)
+            return errno;
+        left -= res;
+    } while (left);
+    return 0;
+}
+
 TEST_F(ModbusTcpServerTest, Ticker) {
     EXPECT_CALL(*backend, ticker).Times(Between(1, 2));
     sleep(2);
+}
+
+TEST_F(ModbusTcpServerTest, RequestResponse) {
+    EXPECT_CALL(*backend, authorize).Times(1).WillOnce(Return(true));
+    EXPECT_CALL(*backend, disconnect).Times(1);
+    EXPECT_CALL(*backend, alive).Times(1);
+
+    int fd = connect_to_server();
+    ASSERT_NE(fd, -1);
+
+    u8vec req { 0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01, 0x00, 0x00,
+              0x00, 0x01};
+    u8vec rsp_expected { 0x47, 0x11, 0x00, 0x00, 0x00, 0x03, 0xaa, 0x81, 0x04 };
+    u8vec rsp(rsp_expected.size());
+
+    int res;
+
+    res = TEMP_FAILURE_RETRY(write(fd, req.data(), req.size()));
+    EXPECT_EQ(res, req.size());
+
+    res = receive_all(fd, rsp.data(), rsp.size());
+    EXPECT_EQ(res, 0);
+    EXPECT_EQ(rsp, rsp_expected);
+
+    close(fd);
+    // give server time to close the connection
+    usleep(100000);
 }
 
 int main(int argc, char** argv) {

@@ -35,6 +35,8 @@ public:
 
     virtual void disconnect(client_id id) {}
 
+    virtual void alive(client_id id) {}
+
     /**
      * Backend ticker is invoked approximately once a second.
      *

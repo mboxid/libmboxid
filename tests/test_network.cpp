@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "logger_private.hpp"
 #include "network_private.hpp"
 
 using namespace mboxid;

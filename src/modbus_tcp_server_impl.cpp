@@ -412,8 +412,10 @@ void modbus_tcp_server::impl::handle_request(int fd, unsigned int events) {
     }
 
     try {
-        if (receive_request(client))
+        if (receive_request(client)) {
             execute_request(client);
+            backend->alive(client->id);
+        }
     }
     catch (const mboxid_error& e) {
         if (e.code() == errc::parse_error) {
