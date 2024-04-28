@@ -7,13 +7,17 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <mboxid/modbus_tcp_server.hpp>
+#include "modbus_protocol_common.hpp"
 #include "network_private.hpp"
 
 using namespace mboxid;
 
+using testing::_;
 using testing::Exactly;
 using testing::Between;
+using testing::DoAll;
 using testing::Return;
+using testing::SaveArg;
 
 using std::uint8_t;
 using std::uint16_t;
@@ -71,7 +75,7 @@ protected:
     std::thread server_run_thd;
 };
 
-int static connect_to_server() {
+static int connect_to_server() {
     auto endpoints =
         resolve_endpoint("localhost", "1502", net::ip_protocol_version::v4,
                          net::endpoint_usage::active_open);
@@ -88,17 +92,18 @@ int static connect_to_server() {
     return fd;
 }
 
+// returns the number of bytes received, 0 for EOF, or -1 in case of an error.
 static int receive_all(int fd, uint8_t* buf, size_t cnt) {
     size_t left = cnt;
 
     do {
         ssize_t res;
         res = TEMP_FAILURE_RETRY(read(fd, &buf[cnt - left], left));
-        if (res < 0)
-            return errno;
+        if (res <= 0)
+            return res;
         left -= res;
     } while (left);
-    return 0;
+    return cnt;
 }
 
 TEST_F(ModbusTcpServerTest, Ticker) {
@@ -107,6 +112,8 @@ TEST_F(ModbusTcpServerTest, Ticker) {
 }
 
 TEST_F(ModbusTcpServerTest, RequestResponse) {
+    using namespace std::chrono_literals;
+
     EXPECT_CALL(*backend, authorize).Times(1).WillOnce(Return(true));
     EXPECT_CALL(*backend, disconnect).Times(1);
     EXPECT_CALL(*backend, alive).Times(1);
@@ -124,13 +131,48 @@ TEST_F(ModbusTcpServerTest, RequestResponse) {
     res = TEMP_FAILURE_RETRY(write(fd, req.data(), req.size()));
     EXPECT_EQ(res, req.size());
 
-    res = receive_all(fd, rsp.data(), rsp.size());
-    EXPECT_EQ(res, 0);
+    auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
+                        rsp.size());
+
+    EXPECT_EQ(f.wait_for(200ms), std::future_status::ready)
+                << "server did not respond within the time limit";
+    res = f.get(); // check for exception thrown by the server
+    EXPECT_GT(res, 0);
     EXPECT_EQ(rsp, rsp_expected);
 
     close(fd);
     // give server time to close the connection
     usleep(100000);
+}
+
+TEST_F(ModbusTcpServerTest, CloseClientConnection) {
+    using namespace std::chrono_literals;
+
+    volatile modbus_tcp_server::client_id id = 0;
+    EXPECT_CALL(*backend, authorize).Times(1)
+        .WillOnce(DoAll(SaveArg<0>(&id), Return(true)));
+    EXPECT_CALL(*backend, disconnect).Times(1);
+
+    int fd = connect_to_server();
+    ASSERT_NE(fd, -1);
+
+    // wait till authorize() is called
+    for (int i = 0; !id && (i < 10); ++i)
+        usleep(100000);
+
+    server->close_client_connection(id);
+
+    u8vec rsp(max_pdu_size);
+
+    auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
+                        rsp.size());
+
+    EXPECT_EQ(f.wait_for(500ms), std::future_status::ready)
+                << "server did not respond within the time limit";
+    int res = f.get(); // check for exception thrown by the server
+    EXPECT_EQ(res, 0);
+
+    close(fd);
 }
 
 int main(int argc, char** argv) {

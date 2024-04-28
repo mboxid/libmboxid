@@ -28,8 +28,7 @@ public:
 
     virtual bool authorize(client_id id,
                            const net::endpoint_addr& numeric_client_addr,
-                           const sockaddr* addr, socklen_t addrlen)
-    {
+                           const sockaddr* addr, socklen_t addrlen) {
         return true;
     }
 

@@ -202,6 +202,9 @@ void modbus_tcp_server::impl::process_commands(int fd, unsigned events) {
     for (const auto& cmd : cmds) {
         if (std::holds_alternative<cmd_stop>(cmd))
             stop_fl = true;
+        else if (std::holds_alternative<cmd_close_connection>(cmd)) {
+            close_client_by_id(std::get<cmd_close_connection>(cmd).id);
+        }
         else
             throw mboxid_error(errc::logic_error, "process_commands");
     }
