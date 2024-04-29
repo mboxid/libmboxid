@@ -36,6 +36,9 @@ struct modbus_tcp_server::impl::client_control_block {
 
     std::span<uint8_t> req;
     std::span<const uint8_t> rsp;
+
+    timestamp ts_idle_deadline = never;
+    timestamp ts_request_complete_deadline = never;
 };
 
 /// Returns timestamp representing the current point in time.
@@ -103,6 +106,14 @@ void modbus_tcp_server::impl::close_client_connection(client_id id) {
     trigger_command_processing();
 }
 
+void modbus_tcp_server::impl::set_idle_timeout(milliseconds to) {
+    idle_timeout = to;
+}
+
+void modbus_tcp_server::impl::set_request_complete_timeout(milliseconds to) {
+    request_complete_timeout = to;
+}
+
 void modbus_tcp_server::impl::trigger_command_processing() {
     if (eventfd_write(cmd_event_fd.get(), 1) == -1)
         throw system_error(errno, "eventfd_write");
@@ -117,6 +128,15 @@ int modbus_tcp_server::impl::calc_poll_timeout() {
     if (now_ >= ts_next_backend_ticker)
         return 0;
     to = std::min(to, ceil<milliseconds>(ts_next_backend_ticker - now_));
+
+    for (const auto& c : clients) {
+        if ((now_ >= c->ts_idle_deadline) ||
+            (now_ >= c->ts_request_complete_deadline))
+            return 0;
+        to = std::min(to, ceil<milliseconds>(c->ts_idle_deadline - now_));
+        to = std::min(to, ceil<milliseconds>(
+                                        c->ts_request_complete_deadline - now_));
+    }
 
     return static_cast<int>(to.count());
 }
@@ -315,8 +335,10 @@ void modbus_tcp_server::impl::establish_connection(int fd, unsigned events) {
         client->id, client->addr.host, client->addr.service,
         authorized ? "accepted" : "denied");
 
-    if (authorized)
+    if (authorized) {
+        client->ts_idle_deadline = determine_deadline(idle_timeout);
         clients.push_back(std::move(client));
+    }
 }
 
 auto modbus_tcp_server::impl::find_client_by_fd(int fd) -> client_control_block*
@@ -349,6 +371,11 @@ void modbus_tcp_server::impl::reset_client_state(client_control_block* client) {
     client->req_header_parsed = false;
     client->req = std::span<uint8_t>();
     client->rsp = std::span<uint8_t>();
+    client->ts_request_complete_deadline = never;
+}
+
+auto modbus_tcp_server::impl::determine_deadline(milliseconds to) -> timestamp {
+    return (to == no_timeout) ? never : now() + to;
 }
 
 bool modbus_tcp_server::impl::receive_request(client_control_block* client) {
@@ -356,6 +383,10 @@ bool modbus_tcp_server::impl::receive_request(client_control_block* client) {
     size_t total = client->req.size();
     size_t left;
     ssize_t cnt;
+
+    if (total == 0)
+        client->ts_request_complete_deadline =
+            determine_deadline(request_complete_timeout);
 
     if (total < mbap_header_size)
         left = mbap_header_size - total;
@@ -418,13 +449,14 @@ void modbus_tcp_server::impl::handle_request(int fd, unsigned int events) {
         if (receive_request(client)) {
             execute_request(client);
             backend->alive(client->id);
+            client->ts_idle_deadline = determine_deadline(idle_timeout);
         }
     }
     catch (const mboxid_error& e) {
         if (e.code() == errc::parse_error) {
             log::error("client(id={:#x}) request: {}", client->id, e.what ());
-            // As TCP provides reliable data transfer we consider every
-            // parse error as serious failure. We close the connection to
+            // As TCP provides a reliable point to point connection we consider
+            // every parse error as serious failure. We close the connection to
             // discard possible corrupted data in-flight and force the client
             // to reconnect.
             close_client_by_id(client->id);
@@ -478,6 +510,21 @@ void modbus_tcp_server::impl::execute_pending_tasks() {
         backend->ticker();
         ts_next_backend_ticker = now_ + backend_ticker_period;
     }
+
+    std::vector<client_id> delayed_close;
+    for (const auto& c : clients) {
+        if (now_ > c->ts_idle_deadline) {
+            log::info("client(id={:#x}) idle timeout expired", c->id);
+            delayed_close.push_back(c->id);
+        }
+        else if (now_ > c->ts_request_complete_deadline) {
+            log::info("client(id={:#x}) response complete timeout expired",
+                      c->id);
+            delayed_close.push_back(c->id);
+        }
+    }
+    for (auto id : delayed_close)
+        close_client_by_id(id);
 }
 
 

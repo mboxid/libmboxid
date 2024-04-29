@@ -31,6 +31,14 @@ void modbus_tcp_server::close_client_connection(client_id id) {
     pimpl->close_client_connection(id);
 }
 
+void modbus_tcp_server::set_idle_timeout(milliseconds to) {
+    pimpl->set_idle_timeout(to);
+}
+
+void modbus_tcp_server::set_request_complete_timeout(milliseconds to) {
+    pimpl->set_request_complete_timeout(to);
+}
+
 modbus_tcp_server::~modbus_tcp_server() = default;
 
 } // namespace mboxid

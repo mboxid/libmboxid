@@ -21,8 +21,6 @@ namespace mboxid {
 
 class modbus_tcp_server::impl {
 public:
-    using client_id = modbus_tcp_server::client_id;
-
     impl();
     impl(const impl&) = delete;
     impl& operator=(const impl&) = delete;
@@ -39,10 +37,12 @@ public:
     void run();
     void shutdown();
     void close_client_connection(client_id id);
+    void set_idle_timeout(milliseconds to);
+    void set_request_complete_timeout(milliseconds to);
 
 private:
     using timestamp = std::chrono::time_point<std::chrono::steady_clock>;
-    using milliseconds = std::chrono::milliseconds;
+    static constexpr timestamp never = timestamp::max();
 
     struct cmd_stop { };
 
@@ -70,6 +70,9 @@ private:
     std::unique_ptr<backend_connector> backend;
     timestamp ts_next_backend_ticker;
 
+    milliseconds idle_timeout = no_timeout;
+    milliseconds request_complete_timeout = no_timeout;
+
     void trigger_command_processing();
     int calc_poll_timeout();
     monitor_set build_monitor_set();
@@ -79,6 +82,7 @@ private:
     client_control_block* find_client_by_fd(int fd);
     void close_client_by_id(client_id id);
     void reset_client_state(client_control_block* client);
+    timestamp determine_deadline(milliseconds to);
     bool receive_request(client_control_block* client);
     void execute_request(client_control_block* client);
     void handle_request(int fd, unsigned events);

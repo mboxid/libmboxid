@@ -18,6 +18,8 @@ using testing::Between;
 using testing::DoAll;
 using testing::Return;
 using testing::SaveArg;
+using testing::AnyNumber;
+using testing::NiceMock;
 
 using std::uint8_t;
 using std::uint16_t;
@@ -53,11 +55,15 @@ public:
 class ModbusTcpServerTest : public ::testing::Test {
 protected:
     ModbusTcpServerTest() {
+        using namespace std::chrono_literals;
+
         server = std::make_unique<modbus_tcp_server>();
         server->set_server_addr("localhost", "1502");
-        auto backend_ = std::make_unique<BackendConnectorMock>();
+        auto backend_ = std::make_unique<NiceMock<BackendConnectorMock>>();
         backend = backend_.get();
         server->set_backend(std::move(backend_));
+        server->set_idle_timeout(1000ms);
+        server->set_request_complete_timeout(100ms);
         server_run_thd = std::thread(&modbus_tcp_server::run, &*server);
 
         // give server time to start
@@ -174,6 +180,58 @@ TEST_F(ModbusTcpServerTest, CloseClientConnection) {
 
     close(fd);
 }
+
+TEST_F(ModbusTcpServerTest, IdleTimeout) {
+    using namespace std::chrono_literals;
+
+    EXPECT_CALL(*backend, authorize).Times(1).WillOnce(Return(true));
+    EXPECT_CALL(*backend, disconnect).Times(1);
+
+    int fd = connect_to_server();
+    ASSERT_NE(fd, -1);
+
+    u8vec rsp(max_pdu_size);
+
+    auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
+                        rsp.size());
+
+    EXPECT_EQ(f.wait_for(2000ms), std::future_status::ready)
+                << "server did not respond within the time limit";
+    int res = f.get(); // check for exception thrown by the server
+    EXPECT_EQ(res, 0);
+
+    close(fd);
+}
+
+TEST_F(ModbusTcpServerTest, RequestTimeout) {
+    using namespace std::chrono_literals;
+
+    EXPECT_CALL(*backend, authorize).Times(1).WillOnce(Return(true));
+    EXPECT_CALL(*backend, disconnect).Times(1);
+
+    int fd = connect_to_server();
+    ASSERT_NE(fd, -1);
+
+    u8vec req { 0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01 };
+
+    int res;
+
+    res = TEMP_FAILURE_RETRY(write(fd, req.data(), req.size()));
+    EXPECT_EQ(res, req.size());
+
+    u8vec rsp(max_pdu_size);
+
+    auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
+                        rsp.size());
+
+    EXPECT_EQ(f.wait_for(200ms), std::future_status::ready)
+                << "server did not respond within the time limit";
+    res = f.get(); // check for exception thrown by the server
+    EXPECT_EQ(res, 0);
+
+    close(fd);
+}
+
 
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);

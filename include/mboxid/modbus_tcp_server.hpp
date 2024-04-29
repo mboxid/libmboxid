@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string_view>
+#include <chrono>
 #include <mboxid/error.hpp>
 #include <mboxid/network.hpp>
 #include <mboxid/backend_connector.hpp>
@@ -15,6 +16,8 @@ namespace mboxid {
 class modbus_tcp_server {
 public:
     using client_id = backend_connector::client_id;
+    using milliseconds = std::chrono::milliseconds;
+    static constexpr milliseconds no_timeout = milliseconds::max();
 
     modbus_tcp_server();
     modbus_tcp_server(const modbus_tcp_server&) = delete;
@@ -33,6 +36,8 @@ public:
     void run();
     void shutdown();
     void close_client_connection(client_id id);
+    void set_idle_timeout(milliseconds to);
+    void set_request_complete_timeout(milliseconds to);
 
 private:
     class impl;
