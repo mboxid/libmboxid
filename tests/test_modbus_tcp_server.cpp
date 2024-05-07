@@ -21,9 +21,6 @@ using testing::SaveArg;
 using testing::AnyNumber;
 using testing::NiceMock;
 
-using std::uint8_t;
-using std::uint16_t;
-using std::size_t;
 using u8vec = std::vector<uint8_t>;
 
 TEST(ModbusTcpServerBasicsTest, Shutdown) {

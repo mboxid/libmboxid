@@ -7,10 +7,6 @@
 
 namespace mboxid {
 
-using std::uint8_t;
-using std::uint16_t;
-using std::size_t;
-
 void parse_mbap_header(std::span<const uint8_t> src, mbap_header& header) {
     expects(src.size() >= mbap_header_size, "incomplete mbap header");
 
@@ -43,7 +39,7 @@ size_t serialize_mbap_header(std::span<uint8_t> dst,
     return p - dst.data();
 }
 
-std::size_t parse_bits(std::span<const std::uint8_t> src,
+std::size_t parse_bits(std::span<const uint8_t> src,
                        std::vector<bool>& bits, std::size_t cnt)
 {
     auto byte_count = bit_to_byte_count(cnt);

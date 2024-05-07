@@ -5,8 +5,8 @@
 #define LIBMBOXID_MODBUS_TCP_SERVER_HPP
 
 #include <memory>
-#include <string_view>
-#include <chrono>
+#include <string>
+#include <mboxid/common.hpp>
 #include <mboxid/error.hpp>
 #include <mboxid/network.hpp>
 #include <mboxid/backend_connector.hpp>
@@ -16,8 +16,6 @@ namespace mboxid {
 class modbus_tcp_server {
 public:
     using client_id = backend_connector::client_id;
-    using milliseconds = std::chrono::milliseconds;
-    static constexpr milliseconds no_timeout = milliseconds::max();
 
     modbus_tcp_server();
     modbus_tcp_server(const modbus_tcp_server&) = delete;
@@ -27,7 +25,8 @@ public:
 
     ~modbus_tcp_server();
 
-    void set_server_addr(std::string_view host, std::string_view service = "",
+    void set_server_addr(const std::string& host,
+                         const std::string& service = "",
                          net::ip_protocol_version ip_version =
                              net::ip_protocol_version::any);
 
@@ -44,6 +43,6 @@ private:
     std::unique_ptr<impl> pimpl;
 };
 
-} // namespace mbxodi
+} // namespace mboxid
 
 #endif // LIBMBOXID_MODBUS_TCP_SERVER_HPP

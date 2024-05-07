@@ -10,10 +10,6 @@
 
 namespace mboxid {
 
-using std::uint8_t;
-using std::uint16_t;
-using std::size_t;
-
 static void validate_min_req_length(std::span<const uint8_t> req, size_t len)
 {
     if (req.size() < len)

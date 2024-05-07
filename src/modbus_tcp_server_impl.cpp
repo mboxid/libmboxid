@@ -15,9 +15,6 @@
 
 namespace mboxid {
 
-using std::uint8_t;
-using std::size_t;
-
 constexpr const char* server_default_port = "502";
 constexpr const char* secure_server_default_port = "802";
 constexpr int backlog{5};
@@ -56,8 +53,8 @@ modbus_tcp_server::impl::impl()
 
 modbus_tcp_server::impl::~impl() = default;
 
-void modbus_tcp_server::impl::set_server_addr(std::string_view host,
-                                        std::string_view service,
+void modbus_tcp_server::impl::set_server_addr(const std::string& host,
+                                        const std::string& service,
                                         net::ip_protocol_version ip_version) {
     own_addr.host = host;
     own_addr.service = service;
@@ -236,7 +233,7 @@ void modbus_tcp_server::impl::passive_open()
     const char* service;
 
     if (own_addr.service.empty())
-        service = use_tls() ? secure_server_default_port : server_default_port;
+        service = use_tls ? secure_server_default_port : server_default_port;
     else
         service = own_addr.service.c_str();
 
@@ -245,7 +242,7 @@ void modbus_tcp_server::impl::passive_open()
 
     for (const auto& ep : endpoints) {
         unique_fd fd(socket(ep.family,
-                            ep.socktype | SOCK_CLOEXEC | SOCK_NONBLOCK,
+                        ep.socktype | SOCK_CLOEXEC | SOCK_NONBLOCK,
                             ep.protocol));
         auto fd_ = fd.get();
 

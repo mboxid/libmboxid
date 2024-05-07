@@ -8,8 +8,10 @@ namespace mboxid {
 
 modbus_tcp_server::modbus_tcp_server() : pimpl(std::make_unique<impl>()) {}
 
-void modbus_tcp_server::set_server_addr(std::string_view host,
-                                        std::string_view service,
+modbus_tcp_server::~modbus_tcp_server() = default;
+
+void modbus_tcp_server::set_server_addr(const std::string& host,
+                                        const std::string& service,
                                         net::ip_protocol_version ip_version) {
     pimpl->set_server_addr(host, service, ip_version);
 }
@@ -38,7 +40,5 @@ void modbus_tcp_server::set_idle_timeout(milliseconds to) {
 void modbus_tcp_server::set_request_complete_timeout(milliseconds to) {
     pimpl->set_request_complete_timeout(to);
 }
-
-modbus_tcp_server::~modbus_tcp_server() = default;
 
 } // namespace mboxid

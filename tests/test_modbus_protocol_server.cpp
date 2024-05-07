@@ -14,8 +14,6 @@ using testing::Return;
 using testing::DoAll;
 using testing::Exactly;
 
-using std::uint8_t;
-using std::uint16_t;
 using u8vec = std::vector<uint8_t>;
 using u16vec = std::vector<uint16_t>;
 

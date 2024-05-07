@@ -29,7 +29,7 @@ public:
 
     ~impl();
 
-    void set_server_addr(std::string_view host, std::string_view service,
+    void set_server_addr(const std::string& host, const std::string& service,
                          net::ip_protocol_version ip_version);
 
     void set_backend(std::unique_ptr<backend_connector> backend);
@@ -59,6 +59,7 @@ private:
     struct client_control_block;
 
     bool stop_fl = false;
+    bool use_tls = false;
 
     unique_fd cmd_event_fd;
     std::vector<unique_fd> listen_fds;
@@ -89,8 +90,6 @@ private:
     void send_response(int fd, unsigned events);
 
     void execute_pending_tasks();
-
-    bool use_tls() { return false; }
 };
 
 } // namespace mboxid

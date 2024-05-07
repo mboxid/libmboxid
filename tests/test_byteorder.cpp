@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
+#include <mboxid/common.hpp>
 #include "byteorder.hpp"
 
 using namespace mboxid;
 
 TEST(ByteorderTest, Fetch8)
 {
-    std::uint8_t buf[] = {0xca};
+    uint8_t buf[] = {0xca};
     unsigned v;
     EXPECT_EQ(fetch8(v, buf), 1);
     EXPECT_EQ(v, 0xca);
@@ -13,7 +14,7 @@ TEST(ByteorderTest, Fetch8)
 
 TEST(ByteorderTest, Fetch16BE)
 {
-    std::uint8_t buf[] = {0xca, 0xfe};
+    uint8_t buf[] = {0xca, 0xfe};
     unsigned v;
     EXPECT_EQ(fetch16_be(v, buf), 2);
     EXPECT_EQ(v, 0xcafe);
@@ -21,14 +22,14 @@ TEST(ByteorderTest, Fetch16BE)
 
 TEST(ByteorderTest, Store8)
 {
-    std::uint8_t buf[1];
+    uint8_t buf[1];
     EXPECT_EQ(store8(buf, 0xca), 1);
     EXPECT_EQ(buf[0], 0xca);
 }
 
 TEST(ByteorderTest, Store16Be)
 {
-    std::uint8_t buf[2];
+    uint8_t buf[2];
     EXPECT_EQ(store16_be(buf, 0xaffe), 2);
     EXPECT_EQ(buf[0], 0xaf);
     EXPECT_EQ(buf[1], 0xfe);

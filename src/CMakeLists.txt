@@ -15,6 +15,7 @@ add_library(mboxid
     network.cpp
     modbus_tcp_server.cpp
     modbus_tcp_server_impl.cpp
+    modbus_tcp_client.cpp
     modbus_protocol_common.cpp
     modbus_protocol_server.cpp
     modbus_protocol_client.cpp

@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <chrono>
 #include <vector>
+#include <mboxid/common.hpp>
 #include <mboxid/network.hpp>
 #include <mboxid/error.hpp>
 #include <mboxid/version.hpp>
@@ -16,7 +17,6 @@ namespace mboxid {
 
 class backend_connector {
 public:
-    using milliseconds = std::chrono::milliseconds;
     typedef std::uint64_t client_id;
 
     backend_connector() = default;
