@@ -11,9 +11,13 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
+# The google test macro EXPECT_THAT causes annoying warnings when
+# -Wrestrict is turned on. Therefore, we turn it off for the unit tests.
+add_compile_options("-Wno-restrict")
+
 set(TESTS test_unique_fd test_byteorder test_error test_version test_logger
-    test_modbus_tcp_server test_network test_modbus_protocol_common
-    test_modbus_protocol_server
+    test_network test_modbus_protocol_common test_modbus_protocol_server
+    test_modbus_tcp_server test_modbus_tcp_client
     )
 
 include(GoogleTest)

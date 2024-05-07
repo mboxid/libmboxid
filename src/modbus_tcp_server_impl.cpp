@@ -15,8 +15,6 @@
 
 namespace mboxid {
 
-constexpr const char* server_default_port = "502";
-constexpr const char* secure_server_default_port = "802";
 constexpr int backlog{5};
 
 constexpr std::chrono::milliseconds backend_ticker_period{1000};

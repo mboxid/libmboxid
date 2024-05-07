@@ -1,7 +1,6 @@
 // Copyright (c) 2024, Franz Hollerer.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <memory>
 #include <thread>
 #include <future>
 #include <gtest/gtest.h>
@@ -23,7 +22,7 @@ using testing::NiceMock;
 
 using u8vec = std::vector<uint8_t>;
 
-TEST(ModbusTcpServerBasicsTest, Shutdown) {
+TEST(ModbusTcpServerBasicTest, Shutdown) {
     using namespace std::chrono_literals;
     modbus_tcp_server server;
     server.set_server_addr("localhost", "1502");

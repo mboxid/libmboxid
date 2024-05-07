@@ -32,6 +32,8 @@ enum class errc {
     passive_open_error,
     active_open_error,
     parse_error,
+    timeout,
+    connection_closed,
 };
 
 const std::error_category& mboxid_category() noexcept;

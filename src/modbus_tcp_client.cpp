@@ -12,9 +12,6 @@
 
 namespace mboxid {
 
-constexpr const char* server_default_port = "502";
-constexpr const char* secure_server_default_port = "802";
-
 struct modbus_tcp_client::impl {
     unique_fd fd;
     bool use_tls = false;
@@ -26,21 +23,20 @@ modbus_tcp_client::~modbus_tcp_client() = default;
 
 // pre-condition: fd must be nonblocking
 
-/**
- *
- */
  /**
-  * Try to connect to the sever, applying a timout.
+  * Try to connect to the sever within specified duration.
   *
   * @param fd Socket file descriptor (nonblocking).
   * @param addr Address of the server.
   * @param addrlen Size of the \a addr argument.
-  * @param timeout Maximum time to establish the connection.
+  * @param timeout no_timeout to disable the timeout, otherwise the maximum
+  *     allowed duration to block.
+  *
   * @return 0 on success, otherwise a POSIX error number (@see man 3 errno).
   *
   * \pre The socket file descriptor \a fd must be set to nonblocking.
   */
-static int connect_with_timeout(int fd, const struct sockaddr* addr,
+static int try_connect(int fd, const struct sockaddr* addr,
                                 socklen_t addrlen, milliseconds timeout)
 {
     int res;
@@ -57,7 +53,7 @@ static int connect_with_timeout(int fd, const struct sockaddr* addr,
     // We poll() for completion by selecting the socket for writing,
     // applying a timeout if necessary.
     struct pollfd pollfd = {.fd = fd, .events = POLLOUT, .revents = 0};
-    int to = timeout == no_timeout ? -1 : static_cast<int>(timeout.count());
+    int to = (timeout == no_timeout) ? -1 : static_cast<int>(timeout.count());
 
     res = TEMP_FAILURE_RETRY(poll(&pollfd, 1, to));
     if (res < 0)
@@ -111,8 +107,8 @@ void modbus_tcp_client::connect_to_server(const std::string& host,
         if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) == -1)
             throw system_error(errno, "setsockopt TCP_NODELAY");
 
-        int res = connect_with_timeout(fd, ep.addr.get(), ep.addrlen,
-                                            timeout);
+        int res = try_connect(fd, ep.addr.get(), ep.addrlen, timeout);
+
         if (res == 0) {
 
             pimpl->fd = std::move(ufd);
