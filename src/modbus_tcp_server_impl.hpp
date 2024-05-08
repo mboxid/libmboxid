@@ -42,7 +42,7 @@ public:
 
 private:
     using timestamp = std::chrono::time_point<std::chrono::steady_clock>;
-    static constexpr timestamp never = timestamp::max();
+    static constexpr auto never = timestamp::max();
 
     struct cmd_stop { };
 

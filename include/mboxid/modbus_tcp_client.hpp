@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <mboxid/common.hpp>
 #include <mboxid/error.hpp>
 #include <mboxid/network.hpp>
@@ -14,6 +15,8 @@ namespace mboxid {
 
 class modbus_tcp_client {
 public:
+    struct context;
+
     modbus_tcp_client();
     modbus_tcp_client(const modbus_tcp_client&) = delete;
     modbus_tcp_client& operator=(const modbus_tcp_client&) = delete;
@@ -28,9 +31,13 @@ public:
                                 net::ip_protocol_version::any,
                            milliseconds timeout = no_timeout);
 
+    void set_response_timeout(milliseconds timeout);
+    void set_unit_id(unsigned id);
+
+    std::vector<bool> read_coils(unsigned address, size_t cnt);
+
 private:
-    struct impl;
-    std::unique_ptr<impl> pimpl;
+    std::unique_ptr<context> ctx;
 };
 
 } // namespace mboxid

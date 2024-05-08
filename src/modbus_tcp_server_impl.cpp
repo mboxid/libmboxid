@@ -24,10 +24,10 @@ struct modbus_tcp_server::impl::client_control_block {
     unique_fd fd;
     net::endpoint_addr addr;
 
-    uint8_t req_buf[max_adu_size];
-    uint8_t rsp_buf[max_adu_size];
+    uint8_t req_buf[max_adu_size]{};
+    uint8_t rsp_buf[max_adu_size]{};
     bool req_header_parsed = false;
-    mbap_header req_header;
+    mbap_header req_header{};
 
     std::span<uint8_t> req;
     std::span<const uint8_t> rsp;
@@ -393,8 +393,8 @@ bool modbus_tcp_server::impl::receive_request(client_control_block* client) {
         left = get_adu_size(client->req_header) - total;
     }
 
-   cnt = TEMP_FAILURE_RETRY(read(fd, &client->req_buf[total], left));
-    if (cnt == -1) {
+    cnt = TEMP_FAILURE_RETRY(read(fd, &client->req_buf[total], left));
+    if (cnt < 0) {
         switch (errno) {
 #if EAGAIN != EWOULDBLOCK
         case EWOULDBLOCK: [[falltrough]];
@@ -402,7 +402,7 @@ bool modbus_tcp_server::impl::receive_request(client_control_block* client) {
         case EAGAIN:
             return false;
         default:
-            throw system_error(errno, "read()");
+            throw system_error(errno, "read");
         }
     }
     else if (cnt == 0) {

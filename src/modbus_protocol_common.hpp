@@ -120,6 +120,10 @@ static inline size_t get_adu_size(const mbap_header& header) {
     return mbap_header_size + get_pdu_size(header);
 }
 
+static inline void set_pdu_size(mbap_header& header, size_t pdu_size) {
+    header.length = sizeof(header.unit_id) + pdu_size;
+}
+
 static inline size_t bit_to_byte_count(size_t n_bits) {
     return (n_bits + bits_per_byte - 1) / bits_per_byte;
 }
