@@ -8,6 +8,9 @@ void main_() {
     mboxid::modbus_tcp_client mb;
 
     mb.connect_to_server("localhost", "1502");
+    auto coils = mb.read_coils(0, 3);
+    for (size_t i = 0; i < coils.size(); ++i)
+        std::cout << "coils[" << i << "]: " << coils[i] << "\n";
 }
 
 int main() {

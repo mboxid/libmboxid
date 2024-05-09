@@ -39,6 +39,7 @@ constexpr size_t read_write_multiple_registers_req_min_size{12};
 constexpr size_t read_write_multiple_registers_rsp_min_size{4};
 constexpr size_t read_device_identification_req_size{4};
 constexpr size_t read_device_identification_rsp_min_size{10};
+constexpr size_t exception_rsp_size{2};
 
 constexpr unsigned single_coil_off{0x0000};
 constexpr unsigned single_coil_on{0xff00};

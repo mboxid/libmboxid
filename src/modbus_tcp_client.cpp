@@ -11,7 +11,6 @@
 #include "network_private.hpp"
 #include "logger_private.hpp"
 #include "error_private.hpp"
-#include "byteorder.hpp"
 #include "modbus_protocol_common.hpp"
 #include "modbus_protocol_client.hpp"
 
@@ -214,7 +213,7 @@ static void receive_all(int fd, std::span<uint8_t> buf, size_t cnt,
         else if (res == 0)
             throw mboxid_error(errc::timeout, "receive_all");
         else if ((res != 1) ||
-                 !(pollfd.revents & (POLLOUT | POLLHUP | POLLERR)))
+                 !(pollfd.revents & (POLLIN | POLLHUP | POLLERR)))
             throw mboxid_error(errc::logic_error, "receive_all: spurious poll");
 
         if (pollfd.revents & (POLLHUP | POLLERR))
@@ -288,8 +287,8 @@ std::vector<bool> modbus_tcp_client::read_coils(unsigned addr, size_t cnt)
     auto len = serialize_read_coils_request(ctx->pdu, addr, cnt);
     auto rsp = send_receive_pdu(&*ctx, req.subspan(0, len));
 
-
     std::vector<bool> coils;
+    parse_read_coils_response(rsp, coils, cnt);
     return coils;
 }
 
