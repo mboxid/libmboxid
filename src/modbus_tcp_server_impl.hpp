@@ -33,6 +33,7 @@ public:
                          net::ip_protocol_version ip_version);
 
     void set_backend(std::unique_ptr<backend_connector> backend);
+    backend_connector* borrow_backend(); // provided for unit tests
 
     void run();
     void shutdown();

@@ -56,13 +56,13 @@ protected:
         server = std::make_unique<modbus_tcp_server>();
         server->set_server_addr("localhost", "1502");
         auto backend_ = std::make_unique<NiceMock<BackendConnectorMock>>();
-        backend = backend_.get();
         server->set_backend(std::move(backend_));
+        backend = dynamic_cast<BackendConnectorMock*>(server->borrow_backend());
         server->set_idle_timeout(1000ms);
         server->set_request_complete_timeout(100ms);
         server_run_thd = std::thread(&modbus_tcp_server::run, &*server);
 
-        // give server time to start
+        // give server time to complete passive open
         usleep(100000);
     }
 
@@ -228,9 +228,13 @@ TEST_F(ModbusTcpServerTest, RequestTimeout) {
     close(fd);
 }
 
-
 int main(int argc, char** argv) {
     testing::InitGoogleTest(&argc, argv);
-    GTEST_FLAG_SET(break_on_failure, 1);
-    return RUN_ALL_TESTS();
+    GTEST_FLAG_SET(catch_exceptions, 0);
+    try {
+        return RUN_ALL_TESTS();
+    } catch (mboxid_error& e) {
+        std::cerr << e.code() << ": " << e.what() << "\n";
+    }
+    return EXIT_FAILURE;
 }

@@ -21,6 +21,10 @@ void modbus_tcp_server::set_backend(
     pimpl->set_backend(std::move(backend));
 }
 
+backend_connector* modbus_tcp_server::borrow_backend() {
+    return pimpl->borrow_backend();
+}
+
 void modbus_tcp_server::run() {
     pimpl->run();
 }

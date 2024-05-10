@@ -24,6 +24,7 @@ using logger_unique_ptr = std::unique_ptr<const logger_base>;
 
 logger_unique_ptr make_standard_logger();
 void install_logger(logger_unique_ptr new_logger);
+const logger_base* borrow_logger(); // provided for unit tests
 
 } // namespace mboxid
 

@@ -126,7 +126,7 @@ static size_t process_read_registers(backend_connector& backend,
     // serialize response
     auto byte_cnt = cnt * sizeof(uint16_t);
     expects(rsp.size() >= (read_registers_rsp_min_size + byte_cnt -
-                           sizeof (uint16_t)), "buffer too small");
+                           sizeof(uint16_t)), "buffer too small");
 
     auto p_rsp = rsp.data();
     p_rsp += store8(p_rsp, fc);

@@ -65,6 +65,10 @@ void modbus_tcp_server::impl::set_backend(
     this->backend = std::move(backend);
 }
 
+backend_connector* modbus_tcp_server::impl::borrow_backend() {
+    return backend.get();
+}
+
 void modbus_tcp_server::impl::run() {
     passive_open();
 

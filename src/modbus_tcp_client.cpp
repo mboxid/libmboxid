@@ -203,8 +203,9 @@ static void receive_all(int fd, std::span<uint8_t> buf, size_t cnt,
             throw mboxid_error(errc::timeout, "receive_all");
 
         struct pollfd pollfd = { .fd = fd, .events = POLLIN, .revents = 0};
-        int to = (deadline == never)
-                     ? -1 : static_cast<int>((deadline - now_) .count());
+        int to = -1;
+        if (deadline != never)
+            to = static_cast<int>(ceil<milliseconds>(deadline - now_).count());
 
         int res = TEMP_FAILURE_RETRY(poll(&pollfd, 1, to));
 
@@ -279,17 +280,57 @@ static std::span<const uint8_t> send_receive_pdu(context* ctx,
     return rsp;
 }
 
-std::vector<bool> modbus_tcp_client::read_coils(unsigned addr, size_t cnt)
-{
+static std::vector<bool> read_bits(context* ctx, function_code fc,
+                                   unsigned int addr, std::size_t cnt) {
     std::span<uint8_t> req{ctx->pdu};
 
     // serialize request
-    auto len = serialize_read_coils_request(ctx->pdu, addr, cnt);
-    auto rsp = send_receive_pdu(&*ctx, req.subspan(0, len));
+    auto len = serialize_read_bits_request(ctx->pdu, fc, addr, cnt);
 
-    std::vector<bool> coils;
-    parse_read_coils_response(rsp, coils, cnt);
-    return coils;
+    // send request and receive response
+    auto rsp = send_receive_pdu(ctx, req.subspan(0, len));
+
+    // parse response
+    std::vector<bool> bits;
+    parse_read_bits_response(rsp, fc, bits, cnt);
+    return bits;
+}
+
+std::vector<bool> modbus_tcp_client::read_coils(unsigned addr, size_t cnt) {
+    return read_bits(&*ctx, function_code::read_coils, addr, cnt);
+}
+
+std::vector<bool> modbus_tcp_client::read_discrete_inputs(unsigned addr,
+                                                          size_t cnt) {
+    return read_bits(&*ctx, function_code::read_discrete_inputs, addr, cnt);
+}
+
+static std::vector<uint16_t> read_registers(context* ctx, function_code fc,
+                                   unsigned int addr, std::size_t cnt) {
+    std::span<uint8_t> req{ctx->pdu};
+
+    // serialize request
+    auto len = serialize_read_registers_request(ctx->pdu, fc, addr, cnt);
+
+    // send request and receive response
+    auto rsp = send_receive_pdu(ctx, req.subspan(0, len));
+
+    // parse response
+    std::vector<uint16_t> regs;
+    parse_read_registers_response(rsp, fc, regs, cnt);
+    return regs;
+}
+
+std::vector<uint16_t> modbus_tcp_client::read_holding_registers(
+                                            unsigned addr, size_t cnt) {
+    return read_registers(&*ctx, function_code::read_holding_registers, addr,
+                          cnt);
+
+}
+std::vector<uint16_t> modbus_tcp_client::read_input_registers(
+                                            unsigned addr, size_t cnt) {
+    return read_registers(&*ctx, function_code::read_input_registers, addr,
+                          cnt);
 }
 
 } // namespace mboxid

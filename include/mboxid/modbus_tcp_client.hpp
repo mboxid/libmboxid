@@ -34,7 +34,10 @@ public:
     void set_response_timeout(milliseconds timeout);
     void set_unit_id(unsigned id);
 
-    std::vector<bool> read_coils(unsigned address, size_t cnt);
+    std::vector<bool> read_coils(unsigned addr, size_t cnt);
+    std::vector<bool> read_discrete_inputs(unsigned addr, size_t cnt);
+    std::vector<uint16_t> read_holding_registers(unsigned addr, size_t cnt);
+    std::vector<uint16_t> read_input_registers(unsigned addr, size_t cnt);
 
 private:
     std::unique_ptr<context> ctx;

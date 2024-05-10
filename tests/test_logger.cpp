@@ -24,8 +24,9 @@ TEST(LoggerTest, InstallInvalidLogger) {
 
 TEST(LoggerTest, UseLogger) {
     auto logger = std::make_unique<LoggerMock>();
-    const LoggerMock* mock = logger.get();
     install_logger(std::move(logger));
+    const LoggerMock* mock =
+        dynamic_cast<const LoggerMock*>(log::borrow_logger());
 
     EXPECT_CALL(*mock, debug("debug 3.14")).Times(1);
     EXPECT_CALL(*mock, info("info 3.15")).Times(1);
