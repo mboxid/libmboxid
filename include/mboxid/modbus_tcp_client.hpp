@@ -38,6 +38,19 @@ public:
     std::vector<bool> read_discrete_inputs(unsigned addr, size_t cnt);
     std::vector<uint16_t> read_holding_registers(unsigned addr, size_t cnt);
     std::vector<uint16_t> read_input_registers(unsigned addr, size_t cnt);
+    void write_single_coil(unsigned addr, bool on);
+    void write_single_register(unsigned addr, unsigned val);
+    void write_multiple_coils(unsigned addr, const std::vector<bool>& bits);
+    void write_multiple_registers(unsigned addr,
+                                  const std::vector<uint16_t>& regs);
+    void mask_write_register(unsigned addr, unsigned and_msk, unsigned or_msk);
+    std::vector<uint16_t> read_write_multiple_registers(
+                                unsigned addr_wr,
+                                const std::vector<uint16_t>& regs_wr,
+                                unsigned addr_rd, size_t cnt_rd);
+    void read_device_identification(std::string& vendor,
+                                    std::string& product,
+                                    std::string& version);
 
 private:
     std::unique_ptr<context> ctx;

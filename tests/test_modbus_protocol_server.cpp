@@ -14,8 +14,9 @@ using testing::Return;
 using testing::DoAll;
 using testing::Exactly;
 
-using u8vec = std::vector<uint8_t>;
-using u16vec = std::vector<uint16_t>;
+using U8Vec = std::vector<uint8_t>;
+using U16Vec = std::vector<uint16_t>;
+using BoolVec = std::vector<bool>;
 
 class BackendConnectorMock : public backend_connector {
 public:
@@ -47,9 +48,9 @@ public:
 };
 
 TEST(ModbusProtocolServerTest, IllegalFunction) {
-    u8vec req{0x55, 0};
-    u8vec rsp_expected{0x55 | 0x80, 1};
-    u8vec rsp(max_pdu_size);
+    U8Vec req{0x55, 0};
+    U8Vec rsp_expected{0x55 | 0x80, 1};
+    U8Vec rsp(max_pdu_size);
     BackendConnectorMock backend;
 
     auto cnt = server_engine(backend, req, rsp);
@@ -62,7 +63,7 @@ TEST(ModbusProtocolServerTest, ReadCoils) {
     {
         // successful request
         BackendConnectorMock backend;
-        std::vector<bool> bits{
+        BoolVec bits{
             1, 0, 1, 1, 0, 0, 1, 1,
             1, 1, 0, 1, 0, 1, 1, 0,
             1, 0, 1,
@@ -71,9 +72,9 @@ TEST(ModbusProtocolServerTest, ReadCoils) {
             .WillOnce(DoAll(SetArgReferee<2>(bits), Return
                             (errc::none)));
 
-        u8vec req{0x01, 0x00, 0x13, 0x00, 0x13};
-        u8vec rsp_expected{0x01, 0x03, 0xcd, 0x6b, 0x05};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x01, 0x00, 0x13, 0x00, 0x13};
+        U8Vec rsp_expected{0x01, 0x03, 0xcd, 0x6b, 0x05};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -85,9 +86,9 @@ TEST(ModbusProtocolServerTest, ReadCoils) {
         BackendConnectorMock backend;
         EXPECT_CALL(backend, read_coils).Times(Exactly(0));
 
-        u8vec req{0x01, 0x00, 0x13, 0x07, 0xd1};
-        u8vec rsp_expected{0x81, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x01, 0x00, 0x13, 0x07, 0xd1};
+        U8Vec rsp_expected{0x81, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -100,9 +101,9 @@ TEST(ModbusProtocolServerTest, ReadCoils) {
         EXPECT_CALL(backend, read_coils)
             .WillOnce(Return(errc::modbus_exception_illegal_data_address));
 
-        u8vec req{0x01, 0x00, 0x13, 0x00, 0x13};
-        u8vec rsp_expected{0x81, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x01, 0x00, 0x13, 0x00, 0x13};
+        U8Vec rsp_expected{0x81, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -115,7 +116,7 @@ TEST(ModbusProtocolServerTest, ReadDiscreteInputs) {
     {
         // successful request
         BackendConnectorMock backend;
-        std::vector<bool> bits{
+        BoolVec bits{
             0, 0, 1, 1, 0, 1, 0, 1,
             1, 1, 0, 1, 1, 0, 1, 1,
             1, 0, 1, 0, 1, 1
@@ -124,9 +125,9 @@ TEST(ModbusProtocolServerTest, ReadDiscreteInputs) {
             .WillOnce(DoAll(SetArgReferee<2>(bits),
                 Return (errc::none)));
 
-        u8vec req{0x02, 0x00, 0xc4, 0x00, 0x16};
-        u8vec rsp_expected{0x02, 0x03, 0xac, 0xdb, 0x35};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x02, 0x00, 0xc4, 0x00, 0x16};
+        U8Vec rsp_expected{0x02, 0x03, 0xac, 0xdb, 0x35};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -138,9 +139,9 @@ TEST(ModbusProtocolServerTest, ReadDiscreteInputs) {
         BackendConnectorMock backend;
         EXPECT_CALL(backend, read_discrete_inputs).Times(Exactly(0));
 
-        u8vec req{0x02, 0x00, 0xc4, 0x07, 0xd1};
-        u8vec rsp_expected{0x82, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x02, 0x00, 0xc4, 0x07, 0xd1};
+        U8Vec rsp_expected{0x82, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -153,9 +154,9 @@ TEST(ModbusProtocolServerTest, ReadDiscreteInputs) {
         EXPECT_CALL(backend, read_discrete_inputs)
             .WillOnce(Return(errc::modbus_exception_illegal_data_address));
 
-        u8vec req{0x02, 0x00, 0xc4, 0x00, 0x16};
-        u8vec rsp_expected{0x82, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x02, 0x00, 0xc4, 0x00, 0x16};
+        U8Vec rsp_expected{0x82, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -168,14 +169,14 @@ TEST(ModbusProtocolServerTest, ReadHoldingRegisters) {
     {
         // successful request
         BackendConnectorMock backend;
-        u16vec regs { 0x022b, 0x0000, 0x0064 };
+        U16Vec regs { 0x022b, 0x0000, 0x0064 };
 
         EXPECT_CALL(backend, read_holding_registers(0x6b, 0x03, _))
             .WillOnce(DoAll(SetArgReferee<2>(regs), Return (errc::none)));
 
-        u8vec req{0x03, 0x00, 0x6b, 0x00, 0x03};
-        u8vec rsp_expected{0x03, 0x06, 0x02, 0x2b, 0x00, 0x00, 0x00, 0x64};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x03, 0x00, 0x6b, 0x00, 0x03};
+        U8Vec rsp_expected{0x03, 0x06, 0x02, 0x2b, 0x00, 0x00, 0x00, 0x64};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -187,9 +188,9 @@ TEST(ModbusProtocolServerTest, ReadHoldingRegisters) {
         BackendConnectorMock backend;
         EXPECT_CALL(backend, read_holding_registers).Times(Exactly(0));
 
-        u8vec req{0x03, 0x00, 0x6b, 0x00, 0x7e};
-        u8vec rsp_expected{0x83, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x03, 0x00, 0x6b, 0x00, 0x7e};
+        U8Vec rsp_expected{0x83, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -202,9 +203,9 @@ TEST(ModbusProtocolServerTest, ReadHoldingRegisters) {
         EXPECT_CALL(backend, read_holding_registers)
             .WillOnce(Return(errc::modbus_exception_illegal_data_address));
 
-        u8vec req{0x03, 0x00, 0x6b, 0x00, 0x03};
-        u8vec rsp_expected{0x83, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x03, 0x00, 0x6b, 0x00, 0x03};
+        U8Vec rsp_expected{0x83, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -217,14 +218,14 @@ TEST(ModbusProtocolServerTest, ReadInputRegisters) {
     {
         // successful request
         BackendConnectorMock backend;
-        u16vec regs { 0x000a };
+        U16Vec regs { 0x000a };
 
         EXPECT_CALL(backend, read_input_registers(0x08, 0x01, _))
             .WillOnce(DoAll(SetArgReferee<2>(regs), Return (errc::none)));
 
-        u8vec req{0x04, 0x00, 0x08, 0x00, 0x01};
-        u8vec rsp_expected{0x04, 0x02, 0x00, 0x0a};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x04, 0x00, 0x08, 0x00, 0x01};
+        U8Vec rsp_expected{0x04, 0x02, 0x00, 0x0a};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -236,9 +237,9 @@ TEST(ModbusProtocolServerTest, ReadInputRegisters) {
         BackendConnectorMock backend;
         EXPECT_CALL(backend, read_input_registers).Times(Exactly(0));
 
-        u8vec req{0x04, 0x00, 0x08, 0x00, 0x7e};
-        u8vec rsp_expected{0x84, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x04, 0x00, 0x08, 0x00, 0x7e};
+        U8Vec rsp_expected{0x84, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -251,9 +252,9 @@ TEST(ModbusProtocolServerTest, ReadInputRegisters) {
         EXPECT_CALL(backend, read_input_registers)
             .WillOnce(Return(errc::modbus_exception_illegal_data_address));
 
-        u8vec req{0x04, 0x00, 0x08, 0x00, 0x01};
-        u8vec rsp_expected{0x84, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x04, 0x00, 0x08, 0x00, 0x01};
+        U8Vec rsp_expected{0x84, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -266,14 +267,14 @@ TEST(ModbusProtocolServerTest, WriteSingleCoil) {
     {
         // successful request
         BackendConnectorMock backend;
-        std::vector<bool> bits {1};
+        BoolVec bits {1};
 
         EXPECT_CALL(backend, write_coils(0xac, bits))
             .WillOnce(Return (errc::none));
 
-        u8vec req{0x05, 0x00, 0xac, 0xff, 0x00};
-        u8vec rsp_expected{0x05, 0x00, 0xac, 0xff, 0x00};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x05, 0x00, 0xac, 0xff, 0x00};
+        U8Vec rsp_expected{0x05, 0x00, 0xac, 0xff, 0x00};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -286,9 +287,9 @@ TEST(ModbusProtocolServerTest, WriteSingleCoil) {
 
         EXPECT_CALL(backend, write_coils).Times(Exactly(0));
 
-        u8vec req{0x05, 0x00, 0xac, 0xff, 0xff};
-        u8vec rsp_expected{0x85, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x05, 0x00, 0xac, 0xff, 0xff};
+        U8Vec rsp_expected{0x85, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -301,9 +302,9 @@ TEST(ModbusProtocolServerTest, WriteSingleCoil) {
         EXPECT_CALL(backend, write_coils)
             .WillOnce(Return(errc::modbus_exception_illegal_data_address));
 
-        u8vec req{0x05, 0x00, 0xac, 0xff, 0x00};
-        u8vec rsp_expected{0x85, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x05, 0x00, 0xac, 0xff, 0x00};
+        U8Vec rsp_expected{0x85, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -316,14 +317,14 @@ TEST(ModbusProtocolServerTest, WriteSingleRegister) {
     {
         // successful request
         BackendConnectorMock backend;
-        u16vec regs {0x0003};
+        U16Vec regs {0x0003};
 
         EXPECT_CALL(backend, write_holding_registers(0x01, regs))
             .WillOnce(Return (errc::none));
 
-        u8vec req{0x06, 0x00, 0x01, 0x00, 0x03};
-        u8vec rsp_expected{0x06, 0x00, 0x01, 0x00, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x06, 0x00, 0x01, 0x00, 0x03};
+        U8Vec rsp_expected{0x06, 0x00, 0x01, 0x00, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -336,9 +337,9 @@ TEST(ModbusProtocolServerTest, WriteSingleRegister) {
         EXPECT_CALL(backend, write_holding_registers)
             .WillOnce(Return(errc::modbus_exception_illegal_data_address));
 
-        u8vec req{0x06, 0x00, 0x01, 0x00, 0x03};
-        u8vec rsp_expected{0x86, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x06, 0x00, 0x01, 0x00, 0x03};
+        U8Vec rsp_expected{0x86, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -351,7 +352,7 @@ TEST(ModbusProtocolServerTest, WriteMultipleCoils) {
     {
         // successful request
         BackendConnectorMock backend;
-        std::vector<bool> bits {
+        BoolVec bits {
             1, 0, 1, 1, 0, 0, 1, 1,
             1, 0
         };
@@ -359,9 +360,9 @@ TEST(ModbusProtocolServerTest, WriteMultipleCoils) {
         EXPECT_CALL(backend, write_coils(0x13, bits))
             .WillOnce(Return (errc::none));
 
-        u8vec req{0x0f, 0x00, 0x13, 0x00, 0x0a, 0x02, 0xcd, 0x01};
-        u8vec rsp_expected{0x0f, 0x00, 0x13, 0x00, 0x0a};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x0f, 0x00, 0x13, 0x00, 0x0a, 0x02, 0xcd, 0x01};
+        U8Vec rsp_expected{0x0f, 0x00, 0x13, 0x00, 0x0a};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -374,9 +375,9 @@ TEST(ModbusProtocolServerTest, WriteMultipleCoils) {
 
         EXPECT_CALL(backend, write_coils).Times(Exactly(0));
 
-        u8vec req{0x0f, 0x00, 0x13, 0x07, 0xb1, 0x02, 0xcd, 0x01};
-        u8vec rsp_expected{0x8f, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x0f, 0x00, 0x13, 0x07, 0xb1, 0x02, 0xcd, 0x01};
+        U8Vec rsp_expected{0x8f, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -389,9 +390,9 @@ TEST(ModbusProtocolServerTest, WriteMultipleCoils) {
         EXPECT_CALL(backend, write_coils)
             .WillOnce(Return(errc::modbus_exception_illegal_data_address));
 
-        u8vec req{0x0f, 0x00, 0x13, 0x00, 0x0a, 0x02, 0xcd, 0x01};
-        u8vec rsp_expected{0x8f, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x0f, 0x00, 0x13, 0x00, 0x0a, 0x02, 0xcd, 0x01};
+        U8Vec rsp_expected{0x8f, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -404,14 +405,14 @@ TEST(ModbusProtocolServerTest, WriteMultipleRegisters) {
     {
         // successful request
         BackendConnectorMock backend;
-        u16vec regs { 0x000a, 0x0102 };
+        U16Vec regs { 0x000a, 0x0102 };
 
         EXPECT_CALL(backend, write_holding_registers(0x01, regs))
             .WillOnce(Return (errc::none));
 
-        u8vec req{0x10, 0x00, 0x01, 0x00, 0x02, 0x04, 0x00, 0x0a, 0x01, 0x02};
-        u8vec rsp_expected{0x10, 0x00, 0x01, 0x00, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x10, 0x00, 0x01, 0x00, 0x02, 0x04, 0x00, 0x0a, 0x01, 0x02};
+        U8Vec rsp_expected{0x10, 0x00, 0x01, 0x00, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -424,9 +425,9 @@ TEST(ModbusProtocolServerTest, WriteMultipleRegisters) {
 
         EXPECT_CALL(backend, write_holding_registers).Times(Exactly(0));
 
-        u8vec req{0x10, 0x00, 0x01, 0x00, 0x7c, 0xf8, 0x00, 0x0a, 0x01, 0x02};
-        u8vec rsp_expected{0x90, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x10, 0x00, 0x01, 0x00, 0x7c, 0xf8, 0x00, 0x0a, 0x01, 0x02};
+        U8Vec rsp_expected{0x90, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -439,9 +440,9 @@ TEST(ModbusProtocolServerTest, WriteMultipleRegisters) {
         EXPECT_CALL(backend, write_holding_registers)
             .WillOnce(Return(errc::modbus_exception_illegal_data_address));
 
-        u8vec req{0x10, 0x00, 0x01, 0x00, 0x02, 0x04, 0x00, 0x0a, 0x01, 0x02};
-        u8vec rsp_expected{0x90, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req{0x10, 0x00, 0x01, 0x00, 0x02, 0x04, 0x00, 0x0a, 0x01, 0x02};
+        U8Vec rsp_expected{0x90, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -453,17 +454,17 @@ TEST(ModbusProtocolServerTest, WriteMultipleRegisters) {
 TEST(ModbusProtocolServerTest, MaskWriteRegister) {
     // successful request
     BackendConnectorMock backend;
-    u16vec regs_rd { 0x12 };
-    u16vec regs_wr { 0x17 };
+    U16Vec regs_rd { 0x12 };
+    U16Vec regs_wr { 0x17 };
 
     EXPECT_CALL(backend, read_holding_registers(0x04, 1, _))
         .WillOnce(DoAll(SetArgReferee<2>(regs_rd), Return(errc::none)));
     EXPECT_CALL(backend, write_holding_registers(0x04, regs_wr))
         .WillOnce(Return (errc::none));
 
-    u8vec req {0x16, 0x00, 0x04, 0x00, 0xf2, 0x00, 0x25};
-    u8vec rsp_expected {0x16, 0x00, 0x04, 0x00, 0xf2, 0x00, 0x25};
-    u8vec rsp(max_pdu_size);
+    U8Vec req {0x16, 0x00, 0x04, 0x00, 0xf2, 0x00, 0x25};
+    U8Vec rsp_expected {0x16, 0x00, 0x04, 0x00, 0xf2, 0x00, 0x25};
+    U8Vec rsp(max_pdu_size);
 
     auto cnt = server_engine(backend, req, rsp);
     EXPECT_EQ(cnt, rsp_expected.size());
@@ -475,18 +476,18 @@ TEST(ModbusProtocolServerTest, ReadWriteMultipleRegisters) {
     {
         // successful request
         BackendConnectorMock backend;
-        u16vec regs_wr { 0x00ff, 0x00ff, 0x0ff };
-        u16vec regs_rd { 0x00fe, 0x0acd, 0x0001, 0x0003, 0x000d, 0x00ff };
+        U16Vec regs_wr { 0x00ff, 0x00ff, 0x0ff };
+        U16Vec regs_rd { 0x00fe, 0x0acd, 0x0001, 0x0003, 0x000d, 0x00ff };
 
         EXPECT_CALL(backend,
                     write_read_holding_registers(0x0e, regs_wr, 0x03, 0x06, _))
             .WillOnce(DoAll(SetArgReferee<4>(regs_rd), Return (errc::none)));
 
-        u8vec req{0x17, 0x00, 0x03, 0x00, 0x06, 0x00, 0x0e, 0x00, 0x03, 0x06,
+        U8Vec req{0x17, 0x00, 0x03, 0x00, 0x06, 0x00, 0x0e, 0x00, 0x03, 0x06,
                 0x00, 0xff, 0x00, 0xff, 0x00, 0xff};
-        u8vec rsp_expected{0x17, 0x0c, 0x00, 0xfe, 0x0a, 0xcd, 0x00, 0x01, 0x00,
+        U8Vec rsp_expected{0x17, 0x0c, 0x00, 0xfe, 0x0a, 0xcd, 0x00, 0x01, 0x00,
                 0x03, 0x00, 0x0d, 0x00, 0xff};
-        u8vec rsp(max_pdu_size);
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -499,10 +500,10 @@ TEST(ModbusProtocolServerTest, ReadWriteMultipleRegisters) {
 
         EXPECT_CALL(backend, write_read_holding_registers).Times(Exactly(0));
 
-        u8vec req{0x17, 0x00, 0x00, 0x00, 0x7d, 0x00,
+        U8Vec req{0x17, 0x00, 0x00, 0x00, 0x7d, 0x00,
                   0x00, 0x00, 0x79, 0xf4, 0x00, 0x00};
-        u8vec rsp_expected{0x97, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec rsp_expected{0x97, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -515,10 +516,10 @@ TEST(ModbusProtocolServerTest, ReadWriteMultipleRegisters) {
 
         EXPECT_CALL(backend, write_read_holding_registers).Times(Exactly(0));
 
-        u8vec req{0x17, 0x00, 0x00, 0x00, 0x7e, 0x00,
+        U8Vec req{0x17, 0x00, 0x00, 0x00, 0x7e, 0x00,
                   0x00, 0x00, 0x01, 0x02, 0x00, 0x00};
-        u8vec rsp_expected{0x97, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec rsp_expected{0x97, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -531,10 +532,10 @@ TEST(ModbusProtocolServerTest, ReadWriteMultipleRegisters) {
         EXPECT_CALL(backend, write_read_holding_registers)
             .WillOnce(Return(errc::modbus_exception_illegal_data_address));
 
-        u8vec req{0x17, 0x00, 0x00, 0x00, 0x01, 0x00,
+        U8Vec req{0x17, 0x00, 0x00, 0x00, 0x01, 0x00,
                   0x00, 0x00, 0x01, 0x02, 0x00, 0x00};
-        u8vec rsp_expected{0x97, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec rsp_expected{0x97, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -547,9 +548,9 @@ TEST(ModbusProtocolServerTest, ReadDeviceIdentification) {
     {
         // successful request
         mboxid::backend_connector backend;
-        u8vec req {0x2b, 0x0e, 0x01, 0x00};
-        u8vec rsp_expected{0x2b, 0x0e, 0x01, 0x01, 0x00, 0x00, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req {0x2b, 0x0e, 0x01, 0x00};
+        U8Vec rsp_expected{0x2b, 0x0e, 0x01, 0x01, 0x00, 0x00, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         std::string vendor, product, version;
         vendor = get_vendor();
@@ -576,9 +577,9 @@ TEST(ModbusProtocolServerTest, ReadDeviceIdentification) {
     {
         // wrong object id --> illegal data address exception
         mboxid::backend_connector backend;
-        u8vec req {0x2b, 0x0e, 0x01, 0xff};
-        u8vec rsp_expected{0x80 | 0x2b, 0x02};
-        u8vec rsp(max_pdu_size);
+        U8Vec req {0x2b, 0x0e, 0x01, 0xff};
+        U8Vec rsp_expected{0x80 | 0x2b, 0x02};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());
@@ -588,9 +589,9 @@ TEST(ModbusProtocolServerTest, ReadDeviceIdentification) {
     {
         // wrong read device id code --> illegal data value exception
         mboxid::backend_connector backend;
-        u8vec req {0x2b, 0x0e, 0x0f, 0x00};
-        u8vec rsp_expected{0x80 | 0x2b, 0x03};
-        u8vec rsp(max_pdu_size);
+        U8Vec req {0x2b, 0x0e, 0x0f, 0x00};
+        U8Vec rsp_expected{0x80 | 0x2b, 0x03};
+        U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
         EXPECT_EQ(cnt, rsp_expected.size());

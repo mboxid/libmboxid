@@ -20,7 +20,7 @@ using testing::SaveArg;
 using testing::AnyNumber;
 using testing::NiceMock;
 
-using u8vec = std::vector<uint8_t>;
+using U8Vec = std::vector<uint8_t>;
 
 TEST(ModbusTcpServerBasicTest, Shutdown) {
     using namespace std::chrono_literals;
@@ -123,10 +123,10 @@ TEST_F(ModbusTcpServerTest, RequestResponse) {
     int fd = connect_to_server();
     ASSERT_NE(fd, -1);
 
-    u8vec req { 0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01, 0x00, 0x00,
+    U8Vec req { 0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01, 0x00, 0x00,
               0x00, 0x01};
-    u8vec rsp_expected { 0x47, 0x11, 0x00, 0x00, 0x00, 0x03, 0xaa, 0x81, 0x04 };
-    u8vec rsp(rsp_expected.size());
+    U8Vec rsp_expected { 0x47, 0x11, 0x00, 0x00, 0x00, 0x03, 0xaa, 0x81, 0x04 };
+    U8Vec rsp(rsp_expected.size());
 
     int res;
 
@@ -164,7 +164,7 @@ TEST_F(ModbusTcpServerTest, CloseClientConnection) {
 
     server->close_client_connection(id);
 
-    u8vec rsp(max_pdu_size);
+    U8Vec rsp(max_pdu_size);
 
     auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
                         rsp.size());
@@ -186,7 +186,7 @@ TEST_F(ModbusTcpServerTest, IdleTimeout) {
     int fd = connect_to_server();
     ASSERT_NE(fd, -1);
 
-    u8vec rsp(max_pdu_size);
+    U8Vec rsp(max_pdu_size);
 
     auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
                         rsp.size());
@@ -208,14 +208,14 @@ TEST_F(ModbusTcpServerTest, RequestTimeout) {
     int fd = connect_to_server();
     ASSERT_NE(fd, -1);
 
-    u8vec req { 0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01 };
+    U8Vec req { 0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01 };
 
     int res;
 
     res = TEMP_FAILURE_RETRY(write(fd, req.data(), req.size()));
     EXPECT_EQ(res, req.size());
 
-    u8vec rsp(max_pdu_size);
+    U8Vec rsp(max_pdu_size);
 
     auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
                         rsp.size());

@@ -340,7 +340,8 @@ static size_t process_mask_write_registers(backend_connector& backend,
     return p_rsp - rsp.data();
 }
 
-static size_t process_read_write_multiple_registers(backend_connector& backend,
+static size_t
+process_read_write_multiple_registers(backend_connector& backend,
                                                std::span<const uint8_t> req,
                                                std::span<uint8_t> rsp) {
     // parse request

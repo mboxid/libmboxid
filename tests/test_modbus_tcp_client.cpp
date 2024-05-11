@@ -14,12 +14,15 @@ using namespace mboxid;
 using namespace std::chrono_literals;
 
 using testing::_;
+using testing::InSequence;
 using testing::SetArgReferee;
 using testing::Return;
 using testing::DoAll;
-using testing::Exactly;
 using testing::HasSubstr;
 using testing::NiceMock;
+
+using U16Vec = std::vector<uint16_t>;
+using BoolVec = std::vector<bool>;
 
 class LoggerMock : public log::logger_base {
 public:
@@ -306,12 +309,49 @@ TEST_F(ModbusTcpClientErrorHandlingTest, PrematureClose) {
     }
 }
 
+TEST_F(ModbusTcpClientErrorHandlingTest, NotConnected) {
+    mboxid::modbus_tcp_client mb;
+    mb.set_response_timeout(1000ms);
+
+    // initially not connected
+    try {
+        mb.read_coils(0, 1);
+        FAIL();
+    } catch (const mboxid_error& e) {
+        EXPECT_EQ(e.code(), errc::not_connected);
+    }
+
+    // connection closed by peer
+    server_thd = std::jthread([&]() {
+        accept_client();
+        close_connection();
+    });
+
+    mb.connect_to_server("localhost", "1502");
+    try {
+        mb.read_coils(0, 1);
+        FAIL();
+    } catch (const mboxid_error& e) {
+        EXPECT_EQ(e.code(), errc::connection_closed);
+    }
+
+    // not connected after connection was closed by peer
+    try {
+        mb.read_coils(0, 1);
+        FAIL();
+    } catch (const mboxid_error& e) {
+        EXPECT_EQ(e.code(), errc::not_connected);
+    }
+}
+
 class BackendConnectorMock : public backend_connector {
 public:
     using BoolVecRef = std::vector<bool>&;
     using BoolConstVecRef = const std::vector<bool>&;
     using U16VecRef = std::vector<uint16_t>&;
     using U16ConstVecRef = const std::vector<uint16_t>&;
+    using StrRef = std::string&;
+
     MOCK_METHOD(errc, read_coils, (unsigned addr, std::size_t cnt,
         BoolVecRef bits), (override));
     MOCK_METHOD(errc, read_discrete_inputs, (unsigned addr, std::size_t cnt,
@@ -333,6 +373,8 @@ public:
                 (unsigned addr_wr, U16ConstVecRef regs_wr,
                     unsigned addr_rd, std::size_t cnt_rd, U16VecRef regs_rd),
                 (override));
+    MOCK_METHOD(errc, get_basic_device_identification,
+                (StrRef vendor, StrRef product, StrRef version), (override));
 };
 
 class ModbusTcpClientAgainstServerTest : public testing::Test {
@@ -363,45 +405,143 @@ protected:
 TEST_F(ModbusTcpClientAgainstServerTest, ReadCoils) {
     mboxid::modbus_tcp_client mb;
     mb.connect_to_server("localhost", "1502");
-    std::vector<bool> bits{ 1, 0, 1 };
+    BoolVec bits{ 1, 0, 1 };
     EXPECT_CALL(*backend, read_coils(0xcafe, 3, _))
         .WillOnce(DoAll(SetArgReferee<2>(bits), Return(errc::none)));
 
-    std::vector<bool> bits_rsp = mb.read_coils(0xcafe, 3);
+    BoolVec bits_rsp = mb.read_coils(0xcafe, 3);
     EXPECT_EQ(bits_rsp, bits);
 }
 
 TEST_F(ModbusTcpClientAgainstServerTest, ReadDiscreteInpututs) {
     mboxid::modbus_tcp_client mb;
     mb.connect_to_server("localhost", "1502");
-    std::vector<bool> bits{ 1, 0, 1 };
+    BoolVec bits{ 1, 0, 1 };
     EXPECT_CALL(*backend, read_discrete_inputs(0xcafe, 3, _))
         .WillOnce(DoAll(SetArgReferee<2>(bits), Return(errc::none)));
 
-    std::vector<bool> bits_rsp = mb.read_discrete_inputs(0xcafe, 3);
+    BoolVec bits_rsp = mb.read_discrete_inputs(0xcafe, 3);
     EXPECT_EQ(bits_rsp, bits);
 }
 
 TEST_F(ModbusTcpClientAgainstServerTest, ReadHoldingRegisters) {
     mboxid::modbus_tcp_client mb;
     mb.connect_to_server("localhost", "1502");
-    std::vector<uint16_t> regs{ 1, 2, 3 };
+    U16Vec regs{ 1, 2, 3 };
     EXPECT_CALL(*backend, read_holding_registers(0xcafe, 3, _))
         .WillOnce(DoAll(SetArgReferee<2>(regs), Return(errc::none)));
 
-    std::vector<uint16_t> regs_rsp = mb.read_holding_registers(0xcafe, 3);
+    U16Vec regs_rsp = mb.read_holding_registers(0xcafe, 3);
     EXPECT_EQ(regs_rsp, regs);
 }
 
 TEST_F(ModbusTcpClientAgainstServerTest, ReadInputRegisters) {
     mboxid::modbus_tcp_client mb;
     mb.connect_to_server("localhost", "1502");
-    std::vector<uint16_t> regs{ 1, 2, 3 };
+    U16Vec regs{ 1, 2, 3 };
     EXPECT_CALL(*backend, read_input_registers(0xcafe, 3, _))
         .WillOnce(DoAll(SetArgReferee<2>(regs), Return(errc::none)));
 
-    std::vector<uint16_t> regs_rsp = mb.read_input_registers(0xcafe, 3);
+    U16Vec regs_rsp = mb.read_input_registers(0xcafe, 3);
     EXPECT_EQ(regs_rsp, regs);
+}
+
+TEST_F(ModbusTcpClientAgainstServerTest, WriteSingleCoil) {
+    mboxid::modbus_tcp_client mb;
+    mb.connect_to_server("localhost", "1502");
+
+    {
+        InSequence seq;
+
+        EXPECT_CALL(*backend, write_coils(0xcafe, BoolVec{true}));
+        EXPECT_CALL(*backend, write_coils(0xcafe, BoolVec{false}));
+    }
+
+    mb.write_single_coil(0xcafe, true);
+    mb.write_single_coil(0xcafe, false);
+}
+
+TEST_F(ModbusTcpClientAgainstServerTest, WriteSingleRegister) {
+    mboxid::modbus_tcp_client mb;
+    mb.connect_to_server("localhost", "1502");
+
+    EXPECT_CALL(*backend, write_holding_registers(0xcafe, U16Vec{0x4711}));
+
+    mb.write_single_register(0xcafe, 0x4711);
+}
+
+TEST_F(ModbusTcpClientAgainstServerTest, WriteMultipleCoils) {
+    mboxid::modbus_tcp_client mb;
+    mb.connect_to_server("localhost", "1502");
+
+    BoolVec bits{0, 1, 0};
+    EXPECT_CALL(*backend, write_coils(0xcafe, bits));
+
+    mb.write_multiple_coils(0xcafe, bits);
+}
+
+TEST_F(ModbusTcpClientAgainstServerTest, WriteMultipleRegisters) {
+    mboxid::modbus_tcp_client mb;
+    mb.connect_to_server("localhost", "1502");
+
+    U16Vec regs{0x4711, 0xaffe, 0xc001};
+    EXPECT_CALL(*backend, write_holding_registers(0xcafe, regs));
+
+    mb.write_multiple_registers(0xcafe, regs);
+}
+
+TEST_F(ModbusTcpClientAgainstServerTest, MaskWriteRegister) {
+    mboxid::modbus_tcp_client mb;
+    mb.connect_to_server("localhost", "1502");
+
+    {
+        InSequence seq;
+
+        EXPECT_CALL(*backend, read_holding_registers(0xcafe, 1, _))
+            .WillOnce(DoAll(SetArgReferee<2>(U16Vec{0x12}),
+                            Return(errc::none)));
+        EXPECT_CALL(*backend, write_holding_registers(0xcafe, U16Vec{0x17}));
+    }
+
+    mb.mask_write_register(0xcafe, 0xf2, 0x25);
+}
+
+TEST_F(ModbusTcpClientAgainstServerTest, ReadWriteMultipleRegisters) {
+    mboxid::modbus_tcp_client mb;
+    mb.connect_to_server("localhost", "1502");
+
+    U16Vec regs_wr{0x4711, 0xaffe, 0xc001};
+    U16Vec regs_rd{0x4711, 0xaffe, 0xc001, 0xc0de};
+    EXPECT_CALL(*backend,
+                write_read_holding_registers(0xcafe, regs_wr, 0x0815, 4, _))
+        .WillOnce(DoAll(SetArgReferee<4>(regs_rd), Return(errc::none)));
+
+    auto regs = mb.read_write_multiple_registers(0xcafe, regs_wr, 0x0815, 4);
+    EXPECT_EQ(regs, regs_rd);
+}
+
+TEST_F(ModbusTcpClientAgainstServerTest, ReadDeviceIdentification) {
+    mboxid::modbus_tcp_client mb;
+    mb.connect_to_server("localhost", "1502");
+
+    U16Vec regs_wr{0x4711, 0xaffe, 0xc001};
+    U16Vec regs_rd{0x4711, 0xaffe, 0xc001, 0xc0de};
+    std::string vendor{"vendor"};
+    std::string product{"product"};
+    std::string version{"1.0"};
+    EXPECT_CALL(*backend,
+                get_basic_device_identification(_, _, _))
+        .WillOnce(DoAll(SetArgReferee<0>(vendor),
+                        SetArgReferee<1>(product),
+                        SetArgReferee<2>(version), Return(errc::none)));
+
+    std::string vendor_rsp;
+    std::string product_rsp;
+    std::string version_rsp;
+    mb.read_device_identification(vendor_rsp, product_rsp, version_rsp);
+    EXPECT_EQ(vendor_rsp, vendor);
+    EXPECT_EQ(product_rsp, product);
+    EXPECT_EQ(version_rsp, version);
 }
 
 int main(int argc, char** argv) {

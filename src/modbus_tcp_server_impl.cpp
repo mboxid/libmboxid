@@ -488,8 +488,8 @@ void modbus_tcp_server::impl::send_response(int fd, unsigned int events) {
 #endif
         case EAGAIN:
             return;
-        case EPIPE: [[fallthrough]];
-        case ECONNRESET:
+        case ECONNRESET: [[fallthrough]];
+        case EPIPE:
             close_client_by_id(client->id);
             return;
         default:

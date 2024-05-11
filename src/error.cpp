@@ -51,8 +51,10 @@ std::string mboxid_cat::message(int ec) const {
         return "parse error";
     case errc::timeout:
         return "timeout";
+    case errc::not_connected:
+        return "client not connected to the server";
     case errc::connection_closed:
-        return "connection closed or reset by peer";
+        return "connection closed or reset";
     default:
         return "unkown";
     }

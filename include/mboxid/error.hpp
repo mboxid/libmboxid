@@ -33,6 +33,7 @@ enum class errc {
     active_open_error,
     parse_error,
     timeout,
+    not_connected,
     connection_closed,
 };
 

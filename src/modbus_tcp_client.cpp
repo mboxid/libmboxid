@@ -181,8 +181,8 @@ static void send_frame(int fd, const mbap_header& mbap,
 
     if (cnt == -1) {
         switch (errno) {
-        case EPIPE: [[fallthrough]];
-        case ECONNRESET:
+        case ECONNRESET: [[fallthrough]];
+        case EPIPE:
             throw mboxid_error(errc::connection_closed);
         default:
             throw system_error(errno, "send()");
@@ -256,6 +256,8 @@ static void receive_frame(int fd, mbap_header& mbap, std::span<uint8_t>& pdu,
 
 static std::span<const uint8_t> send_receive_pdu(context* ctx,
                                              std::span<const uint8_t> req) {
+    if (ctx->fd.get() == -1)
+        throw mboxid_error(errc::not_connected, "send_receive_pdu");
 
     mbap_header mbap = {
         .transaction_id = ++ctx->transaction_id,
@@ -263,12 +265,17 @@ static std::span<const uint8_t> send_receive_pdu(context* ctx,
         .length = 0,
         .unit_id = ctx->unit_id };
     set_pdu_size(mbap, req.size());
-
-    send_frame(ctx->fd.get(), mbap, req);
-
     std::span<uint8_t> rsp{ctx->pdu};
 
-    receive_frame(ctx->fd.get(), mbap, rsp, ctx->timeout);
+    try {
+        send_frame(ctx->fd.get(), mbap, req);
+        receive_frame(ctx->fd.get(), mbap, rsp, ctx->timeout);
+    }
+    catch (const mboxid_error& e) {
+        if (e.code() == errc::connection_closed)
+            ctx->fd.reset();
+        throw;
+    }
 
     if ((mbap.transaction_id != ctx->transaction_id) ||
         (mbap.unit_id != ctx->unit_id)) {
@@ -285,10 +292,11 @@ static std::vector<bool> read_bits(context* ctx, function_code fc,
     std::span<uint8_t> req{ctx->pdu};
 
     // serialize request
-    auto len = serialize_read_bits_request(ctx->pdu, fc, addr, cnt);
+    auto len = serialize_read_bits_request(req, fc, addr, cnt);
+    req = req.subspan(0, len);
 
     // send request and receive response
-    auto rsp = send_receive_pdu(ctx, req.subspan(0, len));
+    auto rsp = send_receive_pdu(ctx, req);
 
     // parse response
     std::vector<bool> bits;
@@ -310,10 +318,11 @@ static std::vector<uint16_t> read_registers(context* ctx, function_code fc,
     std::span<uint8_t> req{ctx->pdu};
 
     // serialize request
-    auto len = serialize_read_registers_request(ctx->pdu, fc, addr, cnt);
+    auto len = serialize_read_registers_request(req, fc, addr, cnt);
+    req = req.subspan(0, len);
 
     // send request and receive response
-    auto rsp = send_receive_pdu(ctx, req.subspan(0, len));
+    auto rsp = send_receive_pdu(ctx, req);
 
     // parse response
     std::vector<uint16_t> regs;
@@ -331,6 +340,118 @@ std::vector<uint16_t> modbus_tcp_client::read_input_registers(
                                             unsigned addr, size_t cnt) {
     return read_registers(&*ctx, function_code::read_input_registers, addr,
                           cnt);
+}
+
+void modbus_tcp_client::write_single_coil(unsigned addr, bool on) {
+    std::span<uint8_t> req{ctx->pdu};
+
+    // serialize request
+    auto len = serialize_write_single_coil_request(req, addr, on);
+    req = req.subspan(0, len);
+
+    // send request and receive response
+    auto rsp = send_receive_pdu(&*ctx, req);
+
+    // parse response
+    parse_write_single_coil_response(rsp, addr, on);
+}
+
+void modbus_tcp_client::write_single_register(unsigned addr, unsigned val) {
+    std::span<uint8_t> req{ctx->pdu};
+
+    // serialize request
+    auto len = serialize_write_single_register_request(req, addr, val);
+    req = req.subspan(0, len);
+
+    // send request and receive response
+    auto rsp = send_receive_pdu(&*ctx, req);
+
+    // parse response
+    parse_write_single_register_response(rsp, addr, val);
+}
+
+void modbus_tcp_client::write_multiple_coils(unsigned addr,
+                                             const std::vector<bool>& bits) {
+    std::span<uint8_t> req{ctx->pdu};
+
+    // serialize request
+    auto len = serialize_write_multiple_coils_request(req, addr, bits);
+    req = req.subspan(0, len);
+
+    // send request and receive response
+    auto rsp = send_receive_pdu(&*ctx, req);
+
+    // parse response
+    parse_write_multiple_coils_response(rsp, addr, bits.size());
+}
+
+void modbus_tcp_client::write_multiple_registers(unsigned addr,
+                                            const std::vector<uint16_t>& regs) {
+    std::span<uint8_t> req{ctx->pdu};
+
+    // serialize request
+    auto len = serialize_write_multiple_registers_request(req, addr, regs);
+    req = req.subspan(0, len);
+
+    // send request and receive response
+    auto rsp = send_receive_pdu(&*ctx, req);
+
+    // parse response
+    parse_write_multiple_registers_response(rsp, addr, regs.size());
+
+}
+
+void modbus_tcp_client::mask_write_register(unsigned addr, unsigned and_msk,
+                                       unsigned or_msk) {
+    std::span<uint8_t> req{ctx->pdu};
+
+    // serialize request
+    auto len = serialize_mask_write_register_request(req, addr, and_msk,
+                                                     or_msk);
+    req = req.subspan(0, len);
+
+    // send request and receive response
+    auto rsp = send_receive_pdu(&*ctx, req);
+
+    // parse response
+    parse_mask_write_register_response(rsp, addr, and_msk, or_msk);
+}
+
+std::vector<uint16_t> modbus_tcp_client::read_write_multiple_registers(
+                                        unsigned addr_wr,
+                                        const std::vector<uint16_t>& regs_wr,
+                                        unsigned addr_rd, size_t cnt_rd) {
+    std::span<uint8_t> req{ctx->pdu};
+
+    // serialize request
+    auto len = serialize_read_write_multiple_registers_request(
+        req, addr_wr, regs_wr, addr_rd, cnt_rd);
+    req = req.subspan(0, len);
+
+    // send request and receive response
+    auto rsp = send_receive_pdu(&*ctx, req);
+
+    // parse response
+    std::vector<uint16_t> regs_rd;
+    parse_read_write_multiple_registers_response(rsp, regs_rd, cnt_rd);
+
+    return regs_rd;
+}
+
+void modbus_tcp_client::read_device_identification(
+                                      std::string& vendor, std::string& product,
+                                      std::string& version) {
+    std::span<uint8_t> req{ctx->pdu};
+
+    // serialize request
+    auto len = serialize_read_device_identification_request(req);
+    req = req.subspan(0, len);
+
+    // send request and receive response
+    auto rsp = send_receive_pdu(&*ctx, req);
+
+    // parse response
+    parse_read_device_identification_response(rsp, vendor, product, version);
 }
 
 } // namespace mboxid
