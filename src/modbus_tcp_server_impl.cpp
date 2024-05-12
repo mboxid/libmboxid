@@ -193,13 +193,13 @@ static void validate_poll_events(const char* where, unsigned events,
         char hex[20];
         std::snprintf(hex, sizeof(hex), "0x%08x", (events & ~expected));
         std::string msg =  where + ": unexpected poll event(s) "s + hex;
-        throw (mboxid_error(errc::logic_error, msg));
+        throw mboxid_error(errc::logic_error, msg);
     }
     if (!(events & expected)) {
         char hex[20];
         std::snprintf(hex, sizeof(hex), "0x%08x", expected);
         std::string msg =  where + ": missing poll event(s) "s + hex;
-        throw (mboxid_error(errc::logic_error, msg));
+        throw mboxid_error(errc::logic_error, msg);
     }
 }
 

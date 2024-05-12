@@ -21,7 +21,7 @@ static void validate_exact_rsp_length(std::span<const uint8_t> rsp, size_t len)
 
 void validate_field(bool cond, const char* msg) {
     if (!cond)
-        throw (mboxid_error(errc::parse_error, msg));
+        throw mboxid_error(errc::parse_error, msg);
 }
 
 static void check_for_exception(std::span<const uint8_t> rsp, function_code fc)

@@ -10,18 +10,18 @@ namespace mboxid {
 
 static inline void validate_argument(bool cond, const char* msg) {
     if (!cond)
-        throw (mboxid_error(errc::invalid_argument, msg));
+        throw mboxid_error(errc::invalid_argument, msg);
 }
 
 template <typename T>
 void validate_argument(T val, T min, T max, const char* msg) {
     if (!((val >= min) && (val <= max)))
-        throw (mboxid_error(errc::invalid_argument, msg));
+        throw mboxid_error(errc::invalid_argument, msg);
 }
 
 static inline void expects(bool cond, const char* msg) {
     if (!cond)
-        throw (mboxid_error(errc::logic_error, msg));
+        throw mboxid_error(errc::logic_error, msg);
 }
 
 } // namespace mboxid
