@@ -152,6 +152,10 @@ void modbus_tcp_client::connect_to_server(const std::string& host,
                        "failed to connect to [" + host + "]:"  + service_);
 }
 
+void modbus_tcp_client::disconnect() {
+    ctx->fd.reset();
+}
+
 void modbus_tcp_client::set_response_timeout(milliseconds timeout) {
     ctx->timeout = timeout;
 }

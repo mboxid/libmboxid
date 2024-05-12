@@ -163,7 +163,7 @@ TEST_F(ModbusTcpClientErrorHandlingTest, WrongUnitId) {
     server_thd = std::jthread([&](){
         accept_client();
         uint8_t rsp[] =
-            {0x00, 0x01, 0x00, 0x00, 0x00, 0x04, 0x05, 0x01, 0x01, 0x00};
+            {0x00, 0x01, 0x00, 0x00, 0x00, 0x04, 0x00, 0x01, 0x01, 0x00};
         write(connfd, rsp, sizeof(rsp));
     });
 
@@ -171,6 +171,7 @@ TEST_F(ModbusTcpClientErrorHandlingTest, WrongUnitId) {
 
     mb.connect_to_server("localhost", "1502");
     try {
+        mb.set_unit_id(5);
         mb.read_coils(0, 1);
         FAIL();
     }
@@ -336,6 +337,20 @@ TEST_F(ModbusTcpClientErrorHandlingTest, NotConnected) {
     }
 
     // not connected after connection was closed by peer
+    try {
+        mb.read_coils(0, 1);
+        FAIL();
+    } catch (const mboxid_error& e) {
+        EXPECT_EQ(e.code(), errc::not_connected);
+    }
+}
+
+TEST_F(ModbusTcpClientErrorHandlingTest, Disconnected) {
+    mboxid::modbus_tcp_client mb;
+    mb.connect_to_server("localhost", "1502");
+
+    mb.disconnect();
+    // not connected after client disconnected from server
     try {
         mb.read_coils(0, 1);
         FAIL();

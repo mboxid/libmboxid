@@ -30,7 +30,7 @@ public:
                            net::ip_protocol_version ip_version =
                                 net::ip_protocol_version::any,
                            milliseconds timeout = no_timeout);
-
+    void disconnect();
     void set_response_timeout(milliseconds timeout);
     void set_unit_id(unsigned id);
 
