@@ -117,6 +117,11 @@ static inline size_t get_pdu_size(const mbap_header& header) {
     return header.length - sizeof(header.unit_id);
 }
 
+/*
+ * CLion complains:
+ *      All calls of function 'get_pdu_size' are unreachable
+ * Actually, this is a false positive.
+ */
 static inline size_t get_adu_size(const mbap_header& header) {
     return mbap_header_size + get_pdu_size(header);
 }

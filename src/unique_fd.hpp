@@ -20,9 +20,9 @@ public:
     unique_fd() : fd{-1} {}
     explicit unique_fd(int fd) : fd{fd} {}
 
-    unique_fd(unique_fd&& other) : fd{other.release()} {}
+    unique_fd(unique_fd&& other)  noexcept : fd{other.release()} {}
 
-    unique_fd& operator=(unique_fd&& other) {
+    unique_fd& operator=(unique_fd&& other)  noexcept {
         reset(other.release());
         return *this;
     }
@@ -31,7 +31,7 @@ public:
         reset();
     }
 
-    int get() const { return fd; }
+    [[nodiscard]] int get() const { return fd; }
 
     void reset(int new_fd = -1) {
         if (fd != -1) {

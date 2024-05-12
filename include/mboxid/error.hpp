@@ -12,7 +12,7 @@ namespace mboxid {
 enum class errc {
     none = 0,
 
-    // mobus protocol exception
+    // modbus protocol exception
     modbus_exception_illegal_function,
     modbus_exception_illegal_data_address,
     modbus_exception_illegal_data_value,
@@ -41,7 +41,7 @@ const std::error_category& mboxid_category() noexcept;
 
 std::error_code make_error_code(errc e) noexcept;
 
-/// Base class for libmoxid exceptions.
+/// Base class for libmboxid exceptions.
 class exception : std::system_error {
 public:
     using std::system_error::system_error;
@@ -52,7 +52,7 @@ public:
 /// Exception signaling an error that originate from the operating system.
 class system_error : public exception {
 public:
-    system_error(int ev)
+    explicit system_error(int ev)
         : exception(ev, std::system_category()) {}
 
     system_error(int ev, const char* what_arg)
@@ -64,7 +64,7 @@ public:
 
 class mboxid_error : public exception {
 public:
-    mboxid_error(errc errc)
+    explicit mboxid_error(errc errc)
         : exception(make_error_code(errc)) {}
 
     mboxid_error(errc errc, const char* what_arg)
@@ -79,9 +79,19 @@ static inline bool is_modbus_exception(errc e) {
     return (e > errc::none) && (e < errc::invalid_argument);
 }
 
+/*
+ * CLion complains:
+ *      All calls of function 'is_modbus_exception' are unreachable
+ *
+ * Actually, this is a false positive. Unit tests proved that the call is
+ * reached.
+ *
+ * Unfortunately, I did not find a way to turn that warning of without
+ * generating tons of gcc warnings about unknown pragmas.
+ */
 static inline bool is_modbus_exception(const exception& e) {
-    return (e.code().category() == mboxid_category()) &&
-            is_modbus_exception(static_cast<errc>(e.code().value()));
+    return ((e.code().category() == mboxid_category()) &&
+            is_modbus_exception(static_cast<errc>(e.code().value())));
 }
 
 } // namespace mboxid

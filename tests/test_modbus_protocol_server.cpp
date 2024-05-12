@@ -8,7 +8,6 @@
 #include "modbus_protocol_server.hpp"
 
 using namespace mboxid;
-using testing::_;
 using testing::SetArgReferee;
 using testing::Return;
 using testing::DoAll;
@@ -64,10 +63,10 @@ TEST(ModbusProtocolServerTest, ReadCoils) {
         // successful request
         BackendConnectorMock backend;
         BoolVec bits{
-            1, 0, 1, 1, 0, 0, 1, 1,
-            1, 1, 0, 1, 0, 1, 1, 0,
-            1, 0, 1,
+            // NOLINTNEXTLINE(*-use-bool-literals)
+            1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1,
         };
+        using testing::_;
         EXPECT_CALL(backend, read_coils(0x13, 0x13, _))
             .WillOnce(DoAll(SetArgReferee<2>(bits), Return
                             (errc::none)));
@@ -117,10 +116,10 @@ TEST(ModbusProtocolServerTest, ReadDiscreteInputs) {
         // successful request
         BackendConnectorMock backend;
         BoolVec bits{
-            0, 0, 1, 1, 0, 1, 0, 1,
-            1, 1, 0, 1, 1, 0, 1, 1,
-            1, 0, 1, 0, 1, 1
+            // NOLINTNEXTLINE(*-use-bool-literals)
+            0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1
         };
+        using testing::_;
         EXPECT_CALL(backend, read_discrete_inputs(0xc4, 0x16, _))
             .WillOnce(DoAll(SetArgReferee<2>(bits),
                 Return (errc::none)));
@@ -171,6 +170,7 @@ TEST(ModbusProtocolServerTest, ReadHoldingRegisters) {
         BackendConnectorMock backend;
         U16Vec regs { 0x022b, 0x0000, 0x0064 };
 
+        using testing::_;
         EXPECT_CALL(backend, read_holding_registers(0x6b, 0x03, _))
             .WillOnce(DoAll(SetArgReferee<2>(regs), Return (errc::none)));
 
@@ -220,6 +220,7 @@ TEST(ModbusProtocolServerTest, ReadInputRegisters) {
         BackendConnectorMock backend;
         U16Vec regs { 0x000a };
 
+        using testing::_;
         EXPECT_CALL(backend, read_input_registers(0x08, 0x01, _))
             .WillOnce(DoAll(SetArgReferee<2>(regs), Return (errc::none)));
 
@@ -267,7 +268,7 @@ TEST(ModbusProtocolServerTest, WriteSingleCoil) {
     {
         // successful request
         BackendConnectorMock backend;
-        BoolVec bits {1};
+        BoolVec bits {1}; // NOLINT(*-use-bool-literals)
 
         EXPECT_CALL(backend, write_coils(0xac, bits))
             .WillOnce(Return (errc::none));
@@ -353,8 +354,7 @@ TEST(ModbusProtocolServerTest, WriteMultipleCoils) {
         // successful request
         BackendConnectorMock backend;
         BoolVec bits {
-            1, 0, 1, 1, 0, 0, 1, 1,
-            1, 0
+            1, 0, 1, 1, 0, 0, 1, 1, 1, 0 // NOLINT(*-use-bool-literals)
         };
 
         EXPECT_CALL(backend, write_coils(0x13, bits))
@@ -457,6 +457,7 @@ TEST(ModbusProtocolServerTest, MaskWriteRegister) {
     U16Vec regs_rd { 0x12 };
     U16Vec regs_wr { 0x17 };
 
+    using testing::_;
     EXPECT_CALL(backend, read_holding_registers(0x04, 1, _))
         .WillOnce(DoAll(SetArgReferee<2>(regs_rd), Return(errc::none)));
     EXPECT_CALL(backend, write_holding_registers(0x04, regs_wr))
@@ -479,6 +480,7 @@ TEST(ModbusProtocolServerTest, ReadWriteMultipleRegisters) {
         U16Vec regs_wr { 0x00ff, 0x00ff, 0x0ff };
         U16Vec regs_rd { 0x00fe, 0x0acd, 0x0001, 0x0003, 0x000d, 0x00ff };
 
+        using testing::_;
         EXPECT_CALL(backend,
                     write_read_holding_registers(0x0e, regs_wr, 0x03, 0x06, _))
             .WillOnce(DoAll(SetArgReferee<4>(regs_rd), Return (errc::none)));

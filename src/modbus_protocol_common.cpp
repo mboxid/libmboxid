@@ -15,7 +15,7 @@ void parse_mbap_header(std::span<const uint8_t> src, mbap_header& header) {
     p += fetch16_be(header.transaction_id, p);
     p += fetch16_be(header.protocol_id, p);
     p += fetch16_be(header.length, p);
-    p += fetch8(header.unit_id, p);
+    fetch8(header.unit_id, p);
 
     if (header.protocol_id != 0)
         throw mboxid_error(errc::parse_error,

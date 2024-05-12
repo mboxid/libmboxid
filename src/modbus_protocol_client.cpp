@@ -13,16 +13,10 @@ static_assert(sizeof(unsigned) >= sizeof(uint16_t), "unsigned type too small");
 constexpr unsigned u16_min = 0U;
 constexpr unsigned u16_max = 0xffffU;
 
-static void validate_min_rsp_length(std::span<const uint8_t> rsp, size_t len)
-{
-    if (rsp.size() < len)
-        throw mboxid_error(errc::parse_error, "response length too small");
-}
-
 static void validate_exact_rsp_length(std::span<const uint8_t> rsp, size_t len)
 {
     if (rsp.size() != len)
-        throw mboxid_error(errc::parse_error, "response length invalid");
+        throw mboxid_error(errc::parse_error, "response wrong length");
 }
 
 void validate_field(bool cond, const char* msg) {
@@ -30,13 +24,12 @@ void validate_field(bool cond, const char* msg) {
         throw (mboxid_error(errc::parse_error, msg));
 }
 
-static void inline check_for_exception(std::span<const uint8_t> rsp,
-                                       function_code fc)
+static void check_for_exception(std::span<const uint8_t> rsp, function_code fc)
 {
     if (rsp.size() != exception_rsp_size)
         return;
 
-    unsigned msk = static_cast<unsigned>(function_code::exception);
+    auto msk = static_cast<unsigned>(function_code::exception);
     unsigned fc_rsp = rsp[0];
     unsigned exception_code = rsp[1];
 
@@ -401,7 +394,8 @@ size_t parse_read_device_identification_response(
     constexpr auto fc = function_code::read_device_identification;
     check_for_exception(src, fc);
 
-    validate_min_rsp_length(src, read_device_identification_rsp_min_size);
+    if (src.size() < read_device_identification_rsp_min_size)
+        throw mboxid_error(errc::parse_error, "response too short");
 
     auto p = src.data();
     function_code fc_rsp;
@@ -429,11 +423,11 @@ size_t parse_read_device_identification_response(
     size_t olen;
     for (size_t i = 0; i < number_of_objects; ++i) {
         if (left(p) < 2)
-            throw mboxid_error(errc::parse_error, "object id / len");
+            throw mboxid_error(errc::parse_error, "object id/len incomplete");
         p += fetch8(oid, p);
         p += fetch8(olen, p);
         if (left(p) < olen)
-            throw mboxid_error(errc::parse_error, "object value");
+            throw mboxid_error(errc::parse_error, "object value incomplete");
         switch (oid) {
         case object_id::vendor_name:
             vendor.assign(p, p + olen);

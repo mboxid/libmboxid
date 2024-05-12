@@ -32,7 +32,7 @@ public:
     void set_server_addr(const std::string& host, const std::string& service,
                          net::ip_protocol_version ip_version);
 
-    void set_backend(std::unique_ptr<backend_connector> backend);
+    void set_backend(std::unique_ptr<backend_connector> backend_);
     backend_connector* borrow_backend(); // provided for unit tests
 
     void run();
@@ -83,8 +83,8 @@ private:
     void establish_connection(int fd, unsigned events);
     client_control_block* find_client_by_fd(int fd);
     void close_client_by_id(client_id id);
-    void reset_client_state(client_control_block* client);
-    timestamp determine_deadline(milliseconds to);
+    static void reset_client_state(client_control_block* client);
+    static timestamp determine_deadline(milliseconds to);
     bool receive_request(client_control_block* client);
     void execute_request(client_control_block* client);
     void handle_request(int fd, unsigned events);

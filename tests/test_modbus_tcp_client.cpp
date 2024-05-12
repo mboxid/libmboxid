@@ -13,7 +13,6 @@
 using namespace mboxid;
 using namespace std::chrono_literals;
 
-using testing::_;
 using testing::InSequence;
 using testing::SetArgReferee;
 using testing::Return;
@@ -89,7 +88,7 @@ protected:
     }
 
     std::jthread server_thd;
-    const LoggerMock *logger; // owned and freed by libmboxid
+    const LoggerMock *logger = nullptr; // owned and freed by libmboxid
     int listenfd = -1;
     int connfd = -1;
 };
@@ -408,7 +407,7 @@ protected:
         usleep(100000);
     }
 
-    ~ModbusTcpClientAgainstServerTest() {
+    ~ModbusTcpClientAgainstServerTest() override {
         server->shutdown();
     }
 
@@ -420,7 +419,8 @@ protected:
 TEST_F(ModbusTcpClientAgainstServerTest, ReadCoils) {
     mboxid::modbus_tcp_client mb;
     mb.connect_to_server("localhost", "1502");
-    BoolVec bits{ 1, 0, 1 };
+    BoolVec bits{ 1, 0, 1 }; // NOLINT(*-use-bool-literals)
+    using testing::_;
     EXPECT_CALL(*backend, read_coils(0xcafe, 3, _))
         .WillOnce(DoAll(SetArgReferee<2>(bits), Return(errc::none)));
 
@@ -431,7 +431,8 @@ TEST_F(ModbusTcpClientAgainstServerTest, ReadCoils) {
 TEST_F(ModbusTcpClientAgainstServerTest, ReadDiscreteInpututs) {
     mboxid::modbus_tcp_client mb;
     mb.connect_to_server("localhost", "1502");
-    BoolVec bits{ 1, 0, 1 };
+    BoolVec bits{ 1, 0, 1 }; // NOLINT(*-use-bool-literals)
+    using testing::_;
     EXPECT_CALL(*backend, read_discrete_inputs(0xcafe, 3, _))
         .WillOnce(DoAll(SetArgReferee<2>(bits), Return(errc::none)));
 
@@ -443,6 +444,7 @@ TEST_F(ModbusTcpClientAgainstServerTest, ReadHoldingRegisters) {
     mboxid::modbus_tcp_client mb;
     mb.connect_to_server("localhost", "1502");
     U16Vec regs{ 1, 2, 3 };
+    using testing::_;
     EXPECT_CALL(*backend, read_holding_registers(0xcafe, 3, _))
         .WillOnce(DoAll(SetArgReferee<2>(regs), Return(errc::none)));
 
@@ -454,6 +456,7 @@ TEST_F(ModbusTcpClientAgainstServerTest, ReadInputRegisters) {
     mboxid::modbus_tcp_client mb;
     mb.connect_to_server("localhost", "1502");
     U16Vec regs{ 1, 2, 3 };
+    using testing::_;
     EXPECT_CALL(*backend, read_input_registers(0xcafe, 3, _))
         .WillOnce(DoAll(SetArgReferee<2>(regs), Return(errc::none)));
 
@@ -489,7 +492,7 @@ TEST_F(ModbusTcpClientAgainstServerTest, WriteMultipleCoils) {
     mboxid::modbus_tcp_client mb;
     mb.connect_to_server("localhost", "1502");
 
-    BoolVec bits{0, 1, 0};
+    BoolVec bits{0, 1, 0}; // NOLINT(*-use-bool-literals)
     EXPECT_CALL(*backend, write_coils(0xcafe, bits));
 
     mb.write_multiple_coils(0xcafe, bits);
@@ -512,6 +515,7 @@ TEST_F(ModbusTcpClientAgainstServerTest, MaskWriteRegister) {
     {
         InSequence seq;
 
+        using testing::_;
         EXPECT_CALL(*backend, read_holding_registers(0xcafe, 1, _))
             .WillOnce(DoAll(SetArgReferee<2>(U16Vec{0x12}),
                             Return(errc::none)));
@@ -527,6 +531,7 @@ TEST_F(ModbusTcpClientAgainstServerTest, ReadWriteMultipleRegisters) {
 
     U16Vec regs_wr{0x4711, 0xaffe, 0xc001};
     U16Vec regs_rd{0x4711, 0xaffe, 0xc001, 0xc0de};
+    using testing::_;
     EXPECT_CALL(*backend,
                 write_read_holding_registers(0xcafe, regs_wr, 0x0815, 4, _))
         .WillOnce(DoAll(SetArgReferee<4>(regs_rd), Return(errc::none)));
@@ -544,6 +549,8 @@ TEST_F(ModbusTcpClientAgainstServerTest, ReadDeviceIdentification) {
     std::string vendor{"vendor"};
     std::string product{"product"};
     std::string version{"1.0"};
+
+    using testing::_;
     EXPECT_CALL(*backend,
                 get_basic_device_identification(_, _, _))
         .WillOnce(DoAll(SetArgReferee<0>(vendor),

@@ -10,7 +10,7 @@ using namespace mboxid;
 using testing::HasSubstr;
 
 TEST(ModbusProtocolCommonTest, ParseMbapHeader) {
-    mbap_header header;
+    mbap_header header; // NOLINT(*-pro-type-member-init)
 
     try {
         const uint8_t buf[]  {0x01, 0x02, 0x00, 0x01};

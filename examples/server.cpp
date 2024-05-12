@@ -52,7 +52,7 @@ public:
 private:
     std::vector<bool> coils{
         false, false, false, false, false, false, false, false, false, false };
-    std::vector<bool> discret_inputs{
+    std::vector<bool> discrete_inputs{
         false, true, true, false, false, false, false, false, false, true };
     std::vector<uint16_t> input_registers{0, 1, 2, 3, 4};
     std::vector<uint16_t> holding_registers{0, 0, 0, 0, 0};
@@ -71,12 +71,12 @@ mboxid::errc backend_connector::read_coils(unsigned int addr, std::size_t cnt,
 
 mboxid::errc backend_connector::read_discrete_inputs(
         unsigned int addr, std::size_t cnt, std::vector<bool>& bits) {
-    if (!cnt || (cnt > discret_inputs.size()) ||
-            ((addr + cnt) > discret_inputs.size()))
+    if (!cnt || (cnt > discrete_inputs.size()) ||
+            ((addr + cnt) > discrete_inputs.size()))
         return mboxid::errc::modbus_exception_illegal_data_address;
 
     for (std::size_t i = 0; i < cnt; ++i)
-        bits.push_back(discret_inputs[addr + i]);
+        bits.push_back(discrete_inputs[addr + i]);
 
     return mboxid::errc::none;
 }
@@ -146,6 +146,18 @@ mboxid::errc backend_connector::write_read_holding_registers(
     return mboxid::errc::none;
 }
 
+/**
+ * Entry point for a separate thread which runs the Modbus server.
+ * @param server Smart pointer to an instance of the server class.
+ *
+ * \note
+ * Clang-Tidy complains:
+ *      The parameter 'server' is copied for each invocation but only used as a
+ *      const reference; consider making it a const reference
+ * As 'server' is a shared pointer with reference counting, we consider this
+ * warning as false positive.
+ */
+// NOLINTNEXTLINE(*-unnecessary-value-param)
 static void server_thread(std::shared_ptr<mboxid::modbus_tcp_server> server) {
     try {
         server->set_server_addr("localhost", "1502");

@@ -7,8 +7,9 @@ namespace mboxid {
 
 class mboxid_cat : public std::error_category {
 public:
-    const char* name() const noexcept override { return "mboxid"; }
-    std::string message(int ec) const override;
+    [[nodiscard]] const char* name() const noexcept override {
+        return "mboxid"; }
+    [[nodiscard]] std::string message(int ec) const override;
 };
 
 std::string mboxid_cat::message(int ec) const {
@@ -56,7 +57,7 @@ std::string mboxid_cat::message(int ec) const {
     case errc::connection_closed:
         return "connection closed or reset";
     default:
-        return "unkown";
+        return "unknown";
     }
 }
 

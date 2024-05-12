@@ -9,7 +9,7 @@ namespace mboxid::log {
 
 constexpr auto prefix = "libmboxid: ";
 
-class standard_logger : public logger_base {
+class standard_logger final : public logger_base {
 public:
     void debug(std::string_view msg) const final {
         std::cout << prefix << "debug: " << msg << "\n";

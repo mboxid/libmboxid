@@ -22,11 +22,12 @@ constexpr auto never = timestamp::max();
 constexpr unsigned min_unit_id = 0U;
 constexpr unsigned max_unit_id = 0xffU;
 
+// NOLINTNEXTLINE(*-pro-type-member-init)
 struct modbus_tcp_client::context {
     unique_fd fd;
     bool use_tls = false;
     milliseconds timeout = no_timeout;
-    uint8_t pdu[max_pdu_size]{};
+    uint8_t pdu[max_pdu_size];
     uint16_t transaction_id = 0;
     uint8_t unit_id = 0;
 };
@@ -256,7 +257,7 @@ static void receive_frame(int fd, mbap_header& mbap, std::span<uint8_t>& pdu,
     auto cnt = get_pdu_size(mbap);
     receive_all(fd, pdu, cnt, deadline);
     pdu = pdu.subspan(0, cnt);
-};
+}
 
 static std::span<const uint8_t> send_receive_pdu(context* ctx,
                                              std::span<const uint8_t> req) {

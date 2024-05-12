@@ -29,9 +29,8 @@ std::list<endpoint> resolve_endpoint(
 {
     using namespace std::string_literals;
 
-    struct addrinfo hints;
+    struct addrinfo hints{};
 
-    std::memset(&hints, 0, sizeof(hints));
     hints.ai_flags = AI_ADDRCONFIG;
     if (usage == endpoint_usage::passive_open)
         hints.ai_flags |= AI_PASSIVE;

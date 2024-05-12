@@ -11,7 +11,6 @@
 
 using namespace mboxid;
 
-using testing::_;
 using testing::Exactly;
 using testing::Between;
 using testing::DoAll;
@@ -66,7 +65,7 @@ protected:
         usleep(100000);
     }
 
-    ~ModbusTcpServerTest() {
+    ~ModbusTcpServerTest() override {
         server->shutdown();
         server_run_thd.join();
     }
@@ -95,7 +94,7 @@ static int connect_to_server() {
 }
 
 // returns the number of bytes received, 0 for EOF, or -1 in case of an error.
-static int receive_all(int fd, uint8_t* buf, size_t cnt) {
+static ssize_t receive_all(int fd, uint8_t* buf, size_t cnt) {
     size_t left = cnt;
 
     do {
@@ -105,7 +104,7 @@ static int receive_all(int fd, uint8_t* buf, size_t cnt) {
             return res;
         left -= res;
     } while (left);
-    return cnt;
+    return static_cast<ssize_t>(cnt);
 }
 
 TEST_F(ModbusTcpServerTest, Ticker) {
@@ -128,7 +127,7 @@ TEST_F(ModbusTcpServerTest, RequestResponse) {
     U8Vec rsp_expected { 0x47, 0x11, 0x00, 0x00, 0x00, 0x03, 0xaa, 0x81, 0x04 };
     U8Vec rsp(rsp_expected.size());
 
-    int res;
+    ssize_t res;
 
     res = TEMP_FAILURE_RETRY(write(fd, req.data(), req.size()));
     EXPECT_EQ(res, req.size());
@@ -171,7 +170,7 @@ TEST_F(ModbusTcpServerTest, CloseClientConnection) {
 
     EXPECT_EQ(f.wait_for(500ms), std::future_status::ready)
                 << "server did not respond within the time limit";
-    int res = f.get(); // check for exception thrown by the server
+    auto res = f.get(); // check for exception thrown by the server
     EXPECT_EQ(res, 0);
 
     close(fd);
@@ -193,7 +192,7 @@ TEST_F(ModbusTcpServerTest, IdleTimeout) {
 
     EXPECT_EQ(f.wait_for(2000ms), std::future_status::ready)
                 << "server did not respond within the time limit";
-    int res = f.get(); // check for exception thrown by the server
+    auto res = f.get(); // check for exception thrown by the server
     EXPECT_EQ(res, 0);
 
     close(fd);
@@ -210,7 +209,7 @@ TEST_F(ModbusTcpServerTest, RequestTimeout) {
 
     U8Vec req { 0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01 };
 
-    int res;
+    ssize_t res;
 
     res = TEMP_FAILURE_RETRY(write(fd, req.data(), req.size()));
     EXPECT_EQ(res, req.size());

@@ -19,15 +19,16 @@ constexpr int backlog{5};
 
 constexpr std::chrono::milliseconds backend_ticker_period{1000};
 
+// NOLINTNEXTLINE(*-pro-type-member-init)
 struct modbus_tcp_server::impl::client_control_block {
     client_id id = 0;
     unique_fd fd;
     net::endpoint_addr addr;
 
-    uint8_t req_buf[max_adu_size]{};
-    uint8_t rsp_buf[max_adu_size]{};
+    uint8_t req_buf[max_adu_size];
+    uint8_t rsp_buf[max_adu_size];
     bool req_header_parsed = false;
-    mbap_header req_header{};
+    mbap_header req_header;
 
     std::span<uint8_t> req;
     std::span<const uint8_t> rsp;
@@ -60,9 +61,9 @@ void modbus_tcp_server::impl::set_server_addr(const std::string& host,
 }
 
 void modbus_tcp_server::impl::set_backend(
-        std::unique_ptr<backend_connector> backend) {
-    validate_argument(backend.get(), "set_backend");
-    this->backend = std::move(backend);
+        std::unique_ptr<backend_connector> backend_) {
+    validate_argument(backend_.get(), "set_backend");
+    backend = std::move(backend_);
 }
 
 backend_connector* modbus_tcp_server::impl::borrow_backend() {
@@ -292,7 +293,7 @@ static auto gen_client_id(int fd, const sockaddr* addr, socklen_t addrlen) {
 void modbus_tcp_server::impl::establish_connection(int fd, unsigned events) {
     validate_poll_events("establish_connection", events, POLLIN);
 
-    struct sockaddr_storage addr{};
+    struct sockaddr_storage addr; // NOLINT(*-pro-type-member-init)
     socklen_t addrlen = sizeof(addr);
     auto sa = reinterpret_cast<struct sockaddr*>(&addr);
 
@@ -310,7 +311,7 @@ void modbus_tcp_server::impl::establish_connection(int fd, unsigned events) {
             return;
         case ECONNABORTED: [[fallthrough]];
         case ETIMEDOUT:
-            log::error("establich_connection aborted prematurely: {}",
+            log::error("establish_connection aborted prematurely: {}",
                     std::error_code(errno, std::system_category()).message());
             return;
         default:

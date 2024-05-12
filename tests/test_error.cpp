@@ -34,6 +34,10 @@ TEST(ErrorCodeTest, Success) {
     EXPECT_EQ(ec, errc());
 }
 
+TEST(ErrorCodeTest, IsErrorCodeEnum) {
+    EXPECT_TRUE(std::is_error_code_enum<mboxid::errc>::value);
+}
+
 TEST(ExceptionTest, ModbusException) {
     {
         system_error err(static_cast<int>(

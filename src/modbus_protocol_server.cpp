@@ -1,7 +1,6 @@
 // Copyright (c) 2024, Franz Hollerer.
 // SPDX-License-Identifier: BSD-3-Clause
 
-#include <map>
 #include <cstring>
 #include "byteorder.hpp"
 #include "error_private.hpp"
@@ -13,13 +12,13 @@ namespace mboxid {
 static void validate_min_req_length(std::span<const uint8_t> req, size_t len)
 {
     if (req.size() < len)
-        throw mboxid_error(errc::parse_error, "request length too small");
+        throw mboxid_error(errc::parse_error, "request too short");
 }
 
 static void validate_exact_req_length(std::span<const uint8_t> req, size_t len)
 {
     if (req.size() != len)
-        throw mboxid_error(errc::parse_error, "request length invalid");
+        throw mboxid_error(errc::parse_error, "request wrong length");
 }
 
 template <typename T>
@@ -50,7 +49,7 @@ static size_t process_read_bits(backend_connector& backend,
     auto* p_req = req.data();
     p_req += fetch8(fc, p_req);
     p_req += fetch16_be(addr, p_req);
-    p_req += fetch16_be(cnt, p_req);
+    fetch16_be(cnt, p_req);
 
     if (!is_in_range(cnt, min_read_bits, max_read_bits))
         return serialize_exception_response(
@@ -99,7 +98,7 @@ static size_t process_read_registers(backend_connector& backend,
     auto* p_req = req.data();
     p_req += fetch8(fc, p_req);
     p_req += fetch16_be(addr, p_req);
-    p_req += fetch16_be(cnt, p_req);
+    fetch16_be(cnt, p_req);
 
     if (!is_in_range(cnt, min_read_registers, max_read_registers))
         return serialize_exception_response(
@@ -149,7 +148,7 @@ static size_t process_write_single_coil(backend_connector& backend,
     auto* p_req = req.data();
     p_req += fetch8(fc, p_req);
     p_req += fetch16_be(addr, p_req);
-    p_req += fetch16_be(val, p_req);
+    fetch16_be(val, p_req);
 
     if ((val != single_coil_off) && (val != single_coil_on))
         return serialize_exception_response(
@@ -188,7 +187,7 @@ static size_t process_write_single_register(backend_connector& backend,
     auto* p_req = req.data();
     p_req += fetch8(fc, p_req);
     p_req += fetch16_be(addr, p_req);
-    p_req += fetch16_be(val, p_req);
+    fetch16_be(val, p_req);
 
     // invoke backend connector
     std::vector<uint16_t> regs{val};
@@ -233,7 +232,7 @@ static size_t process_write_multiple_coils(backend_connector& backend,
             rsp, fc, errc::modbus_exception_illegal_data_value);
 
     std::vector<bool> bits;
-    p_req += parse_bits(req.subspan(p_req - req.data()), bits, cnt);
+    parse_bits(req.subspan(p_req - req.data()), bits, cnt);
 
     // invoke backend connector
     auto res = backend.write_coils(addr, bits);
@@ -276,7 +275,7 @@ static size_t process_write_multiple_registers(backend_connector& backend,
             rsp, fc, errc::modbus_exception_illegal_data_value);
 
     std::vector<uint16_t> regs;
-    p_req += parse_regs(req.subspan(p_req - req.data()), regs, cnt);
+    parse_regs(req.subspan(p_req - req.data()), regs, cnt);
 
     // invoke backend connector
     auto res = backend.write_holding_registers(addr, regs);
@@ -311,7 +310,7 @@ static size_t process_mask_write_registers(backend_connector& backend,
     p_req += fetch8(fc, p_req);
     p_req += fetch16_be(addr, p_req);
     p_req += fetch16_be(and_mask, p_req);
-    p_req += fetch16_be(or_mask, p_req);
+    fetch16_be(or_mask, p_req);
 
     // invoke backend
     std::vector<uint16_t> regs;
@@ -371,7 +370,7 @@ process_read_write_multiple_registers(backend_connector& backend,
             rsp, fc, errc::modbus_exception_illegal_data_value);
 
     std::vector<uint16_t> regs_wr;
-    p_req += parse_regs(req.subspan(p_req - req.data()), regs_wr, cnt_wr);
+    parse_regs(req.subspan(p_req - req.data()), regs_wr, cnt_wr);
 
     // invoke backend connector
     std::vector<uint16_t> regs_rd;
@@ -414,7 +413,7 @@ static size_t process_read_device_information(backend_connector& backend,
     p_req += fetch8(fc, p_req);
     p_req += fetch8(mei, p_req);
     p_req += fetch8(code, p_req);
-    p_req += fetch8(id, p_req);
+    fetch8(id, p_req);
 
     if ((mei != mei_type::modbus) || (code != read_device_id_code::basic))
         return serialize_exception_response(rsp, fc,
