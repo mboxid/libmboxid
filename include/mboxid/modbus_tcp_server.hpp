@@ -26,9 +26,9 @@ public:
     ~modbus_tcp_server();
 
     void set_server_addr(const std::string& host,
-                         const std::string& service = "",
-                         net::ip_protocol_version ip_version =
-                             net::ip_protocol_version::any);
+            const std::string& service = "",
+            net::ip_protocol_version ip_version =
+                    net::ip_protocol_version::any);
 
     void set_backend(std::unique_ptr<backend_connector> backend);
     backend_connector* borrow_backend(); // provided for unit tests

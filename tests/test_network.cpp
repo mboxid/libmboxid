@@ -12,26 +12,23 @@ TEST(NetworkTest, ResolveEndpoint) {
     net::endpoint_addr saddr;
     const net::endpoint* ep;
 
-    endpoints =
-        resolve_endpoint("localhost", "", net::ip_protocol_version::any,
-                         net::endpoint_usage::passive_open);
+    endpoints = resolve_endpoint("localhost", "", net::ip_protocol_version::any,
+            net::endpoint_usage::passive_open);
     EXPECT_EQ(endpoints.size(), 2);
-    for (const auto& ep: endpoints) {
+    for (const auto& ep : endpoints) {
         saddr = net::to_endpoint_addr(ep.addr.get(), ep.addrlen, true);
         EXPECT_THAT(saddr.host, AnyOf("127.0.0.1", "::1"));
     }
 
-    endpoints =
-        resolve_endpoint("localhost", "", net::ip_protocol_version::v4,
-                         net::endpoint_usage::passive_open);
+    endpoints = resolve_endpoint("localhost", "", net::ip_protocol_version::v4,
+            net::endpoint_usage::passive_open);
     EXPECT_EQ(endpoints.size(), 1);
     ep = &endpoints.front();
     saddr = net::to_endpoint_addr(ep->addr.get(), ep->addrlen);
     EXPECT_EQ(saddr.host, "127.0.0.1");
 
-    endpoints =
-        resolve_endpoint("localhost", "", net::ip_protocol_version::v6,
-                         net::endpoint_usage::passive_open);
+    endpoints = resolve_endpoint("localhost", "", net::ip_protocol_version::v6,
+            net::endpoint_usage::passive_open);
     EXPECT_EQ(endpoints.size(), 1);
     ep = &endpoints.front();
     saddr = net::to_endpoint_addr(ep->addr.get(), ep->addrlen);

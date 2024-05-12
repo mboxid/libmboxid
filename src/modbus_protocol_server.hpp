@@ -11,7 +11,7 @@
 namespace mboxid {
 
 std::size_t server_engine(backend_connector& backend,
-                          std::span<const uint8_t> req, std::span<uint8_t> rsp);
+        std::span<const uint8_t> req, std::span<uint8_t> rsp);
 
 } // namespace mboxid
 

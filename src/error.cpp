@@ -8,7 +8,8 @@ namespace mboxid {
 class mboxid_cat : public std::error_category {
 public:
     [[nodiscard]] const char* name() const noexcept override {
-        return "mboxid"; }
+        return "mboxid";
+    }
     [[nodiscard]] std::string message(int ec) const override;
 };
 

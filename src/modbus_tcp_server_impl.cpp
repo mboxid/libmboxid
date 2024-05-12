@@ -41,9 +41,8 @@ struct modbus_tcp_server::impl::client_control_block {
 static auto now() { return std::chrono::steady_clock::now(); }
 
 modbus_tcp_server::impl::impl()
-    : backend(std::make_unique<backend_connector>()),
-      ts_next_backend_ticker(now() + backend_ticker_period)
-{
+        : backend(std::make_unique<backend_connector>()),
+          ts_next_backend_ticker(now() + backend_ticker_period) {
     if (auto fd = eventfd(0, EFD_CLOEXEC | EFD_SEMAPHORE); fd == -1)
         throw system_error(errno, "eventfd");
     else
@@ -53,8 +52,7 @@ modbus_tcp_server::impl::impl()
 modbus_tcp_server::impl::~impl() = default;
 
 void modbus_tcp_server::impl::set_server_addr(const std::string& host,
-                                        const std::string& service,
-                                        net::ip_protocol_version ip_version) {
+        const std::string& service, net::ip_protocol_version ip_version) {
     own_addr.host = host;
     own_addr.service = service;
     own_addr.ip_version = ip_version;
@@ -131,11 +129,11 @@ int modbus_tcp_server::impl::calc_poll_timeout() {
 
     for (const auto& c : clients) {
         if ((now_ >= c->ts_idle_deadline) ||
-            (now_ >= c->ts_request_complete_deadline))
+                (now_ >= c->ts_request_complete_deadline))
             return 0;
         to = std::min(to, ceil<milliseconds>(c->ts_idle_deadline - now_));
-        to = std::min(to, ceil<milliseconds>(
-                                        c->ts_request_complete_deadline - now_));
+        to = std::min(
+                to, ceil<milliseconds>(c->ts_request_complete_deadline - now_));
     }
 
     return static_cast<int>(to.count());
@@ -148,19 +146,20 @@ auto modbus_tcp_server::impl::build_monitor_set() -> monitor_set {
     set.fds.reserve(n_fds);
     set.on_ready.reserve(n_fds);
 
-    struct pollfd pollfd = { .fd = -1, .events = POLLIN, .revents = 0};
+    struct pollfd pollfd = {.fd = -1, .events = POLLIN, .revents = 0};
 
     pollfd.fd = cmd_event_fd.get();
     set.fds.push_back(pollfd);
-    set.on_ready.emplace_back(
-        [this](int fd, unsigned events) {this->process_commands(fd, events);});
+    set.on_ready.emplace_back([this](int fd, unsigned events) {
+        this->process_commands(fd, events);
+    });
 
     for (const auto& fd : listen_fds) {
         pollfd.fd = fd.get();
         set.fds.push_back(pollfd);
-        set.on_ready.emplace_back(
-            [this](int fd, unsigned events) {
-            this->establish_connection(fd, events) ;});
+        set.on_ready.emplace_back([this](int fd, unsigned events) {
+            this->establish_connection(fd, events);
+        });
     }
 
     for (const auto& client : clients) {
@@ -170,13 +169,11 @@ auto modbus_tcp_server::impl::build_monitor_set() -> monitor_set {
             set.on_ready.emplace_back([this](int fd, unsigned events) {
                 this->handle_request(fd, events);
             });
-        }
-        else {
+        } else {
             pollfd.events = POLLOUT;
             set.on_ready.emplace_back([this](int fd, unsigned events) {
                 this->send_response(fd, events);
             });
-
         }
         set.fds.push_back(pollfd);
     }
@@ -184,21 +181,20 @@ auto modbus_tcp_server::impl::build_monitor_set() -> monitor_set {
     return set;
 }
 
-static void validate_poll_events(const char* where, unsigned events,
-                                 unsigned expected)
-{
+static void validate_poll_events(
+        const char* where, unsigned events, unsigned expected) {
     using namespace std::string_literals;
 
     if (events & ~expected) {
         char hex[20];
         std::snprintf(hex, sizeof(hex), "0x%08x", (events & ~expected));
-        std::string msg =  where + ": unexpected poll event(s) "s + hex;
+        std::string msg = where + ": unexpected poll event(s) "s + hex;
         throw mboxid_error(errc::logic_error, msg);
     }
     if (!(events & expected)) {
         char hex[20];
         std::snprintf(hex, sizeof(hex), "0x%08x", expected);
-        std::string msg =  where + ": missing poll event(s) "s + hex;
+        std::string msg = where + ": missing poll event(s) "s + hex;
         throw mboxid_error(errc::logic_error, msg);
     }
 }
@@ -224,14 +220,12 @@ void modbus_tcp_server::impl::process_commands(int fd, unsigned events) {
             stop_fl = true;
         else if (std::holds_alternative<cmd_close_connection>(cmd)) {
             close_client_by_id(std::get<cmd_close_connection>(cmd).id);
-        }
-        else
+        } else
             throw mboxid_error(errc::logic_error, "process_commands");
     }
 }
 
-void modbus_tcp_server::impl::passive_open()
-{
+void modbus_tcp_server::impl::passive_open() {
     const char* host = own_addr.host.empty() ? nullptr : own_addr.host.c_str();
     const char* service;
 
@@ -241,12 +235,11 @@ void modbus_tcp_server::impl::passive_open()
         service = own_addr.service.c_str();
 
     auto endpoints = resolve_endpoint(host, service, own_addr.ip_version,
-                                      net::endpoint_usage::passive_open);
+            net::endpoint_usage::passive_open);
 
     for (const auto& ep : endpoints) {
         unique_fd fd(socket(ep.family,
-                        ep.socktype | SOCK_CLOEXEC | SOCK_NONBLOCK,
-                            ep.protocol));
+                ep.socktype | SOCK_CLOEXEC | SOCK_NONBLOCK, ep.protocol));
         auto fd_ = fd.get();
 
         if (fd_ == -1)
@@ -259,16 +252,16 @@ void modbus_tcp_server::impl::passive_open()
         if (bind(fd_, ep.addr.get(), ep.addrlen) == -1) {
             auto msg = std::error_code(errno, std::system_category()).message();
             auto ep_addr = net::to_endpoint_addr(ep.addr.get(), ep.addrlen);
-            log::error("bind to [{}]:{} failed: {}",
-                       ep_addr.host, ep_addr.service, msg);
+            log::error("bind to [{}]:{} failed: {}", ep_addr.host,
+                    ep_addr.service, msg);
             continue;
         }
 
         if (listen(fd_, backlog) == -1) {
             auto msg = std::error_code(errno, std::system_category()).message();
             auto ep_addr = net::to_endpoint_addr(ep.addr.get(), ep.addrlen);
-            log::error("listen on [{}]:{} failed: {}",
-                       ep_addr.host, ep_addr.service, msg);
+            log::error("listen on [{}]:{} failed: {}", ep_addr.host,
+                    ep_addr.service, msg);
             continue;
         }
 
@@ -276,8 +269,8 @@ void modbus_tcp_server::impl::passive_open()
     }
 
     if (listen_fds.empty())
-        throw mboxid_error(errc::passive_open_error,
-                           "failed to bind to any interface");
+        throw mboxid_error(
+                errc::passive_open_error, "failed to bind to any interface");
 }
 
 static auto gen_client_id(int fd, const sockaddr* addr, socklen_t addrlen) {
@@ -297,19 +290,21 @@ void modbus_tcp_server::impl::establish_connection(int fd, unsigned events) {
     socklen_t addrlen = sizeof(addr);
     auto sa = reinterpret_cast<struct sockaddr*>(&addr);
 
-    unique_fd conn_fd(TEMP_FAILURE_RETRY(accept4(fd, sa, &addrlen,
-                                        SOCK_NONBLOCK | SOCK_CLOEXEC)));
+    unique_fd conn_fd(TEMP_FAILURE_RETRY(
+            accept4(fd, sa, &addrlen, SOCK_NONBLOCK | SOCK_CLOEXEC)));
 
     auto conn_fd_ = conn_fd.get();
 
     if (conn_fd_ == -1) {
         switch (errno) {
 #if EAGAIN != EWOULDBLOCK
-        case EWOULDBLOCK: [[falltrough]];
+        case EWOULDBLOCK:
+            [[falltrough]];
 #endif
         case EAGAIN:
             return;
-        case ECONNABORTED: [[fallthrough]];
+        case ECONNABORTED:
+            [[fallthrough]];
         case ETIMEDOUT:
             log::error("establish_connection aborted prematurely: {}",
                     std::error_code(errno, std::system_category()).message());
@@ -328,12 +323,11 @@ void modbus_tcp_server::impl::establish_connection(int fd, unsigned events) {
     if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) == -1)
         throw system_error(errno, "setsockopt TCP_NODELAY");
 
-    auto authorized = backend->authorize(client->id, client->addr,
-                                         sa, addrlen);
+    auto authorized = backend->authorize(client->id, client->addr, sa, addrlen);
 
-    log::info("client(id={:#x}) connecting from [{}]:{} {}",
-        client->id, client->addr.host, client->addr.service,
-        authorized ? "accepted" : "denied");
+    log::info("client(id={:#x}) connecting from [{}]:{} {}", client->id,
+            client->addr.host, client->addr.service,
+            authorized ? "accepted" : "denied");
 
     if (authorized) {
         client->ts_idle_deadline = determine_deadline(idle_timeout);
@@ -341,11 +335,10 @@ void modbus_tcp_server::impl::establish_connection(int fd, unsigned events) {
     }
 }
 
-auto modbus_tcp_server::impl::find_client_by_fd(int fd) -> client_control_block*
-{
+auto modbus_tcp_server::impl::find_client_by_fd(int fd)
+        -> client_control_block* {
     auto res = std::ranges::find_if(clients,
-                                    [fd](const auto& client) {
-                                        return client->fd.get() == fd; });
+            [fd](const auto& client) { return client->fd.get() == fd; });
 
     if (res == clients.end()) {
         log::warning("find_client_by_id(): client(fd={}) not found", fd);
@@ -354,16 +347,13 @@ auto modbus_tcp_server::impl::find_client_by_fd(int fd) -> client_control_block*
     return res->get();
 }
 
-void modbus_tcp_server::impl::close_client_by_id(client_id id)
-{
-    auto cnt = std::erase_if(clients,
-                             [id](auto& client) {
-                                 return client->id == id; });
+void modbus_tcp_server::impl::close_client_by_id(client_id id) {
+    auto cnt = std::erase_if(
+            clients, [id](auto& client) { return client->id == id; });
     if (cnt) {
         backend->disconnect(id);
         log::info("client(id={:#x}) disconnected", id);
-    }
-    else
+    } else
         log::warning("close_client_by_id(): client(id={:#x}) not found", id);
 }
 
@@ -386,7 +376,7 @@ bool modbus_tcp_server::impl::receive_request(client_control_block* client) {
 
     if (total == 0)
         client->ts_request_complete_deadline =
-            determine_deadline(request_complete_timeout);
+                determine_deadline(request_complete_timeout);
 
     if (total < mbap_header_size)
         left = mbap_header_size - total;
@@ -402,15 +392,15 @@ bool modbus_tcp_server::impl::receive_request(client_control_block* client) {
     if (cnt < 0) {
         switch (errno) {
 #if EAGAIN != EWOULDBLOCK
-        case EWOULDBLOCK: [[falltrough]];
+        case EWOULDBLOCK:
+            [[falltrough]];
 #endif
         case EAGAIN:
             return false;
         default:
             throw system_error(errno, "read");
         }
-    }
-    else if (cnt == 0) {
+    } else if (cnt == 0) {
         close_client_by_id(client->id);
         return false;
     }
@@ -426,7 +416,7 @@ void modbus_tcp_server::impl::execute_request(client_control_block* client) {
     auto rsp_header = client->req_header;
 
     size_t cnt = server_engine(*backend, client->req.subspan(mbap_header_size),
-                               rsp.subspan(mbap_header_size));
+            rsp.subspan(mbap_header_size));
     rsp_header.length = cnt + sizeof(rsp_header.unit_id);
     cnt += serialize_mbap_header(rsp.subspan(0, mbap_header_size), rsp_header);
 
@@ -451,24 +441,22 @@ void modbus_tcp_server::impl::handle_request(int fd, unsigned int events) {
             backend->alive(client->id);
             client->ts_idle_deadline = determine_deadline(idle_timeout);
         }
-    }
-    catch (const mboxid_error& e) {
+    } catch (const mboxid_error& e) {
         if (e.code() == errc::parse_error) {
-            log::error("client(id={:#x}) request: {}", client->id, e.what ());
+            log::error("client(id={:#x}) request: {}", client->id, e.what());
             // As TCP provides a reliable point to point connection we consider
             // every parse error as serious failure. We close the connection to
             // discard possible corrupted data in-flight and force the client
             // to reconnect.
             close_client_by_id(client->id);
-        }
-        else
+        } else
             throw;
     }
 }
 
 void modbus_tcp_server::impl::send_response(int fd, unsigned int events) {
-    validate_poll_events("receive_request", events,
-                         POLLHUP | POLLERR | POLLOUT);
+    validate_poll_events(
+            "receive_request", events, POLLHUP | POLLERR | POLLOUT);
     auto client = find_client_by_fd(fd);
     if (!client)
         return;
@@ -485,11 +473,13 @@ void modbus_tcp_server::impl::send_response(int fd, unsigned int events) {
     if (cnt == -1) {
         switch (errno) {
 #if EAGAIN != EWOULDBLOCK
-        case EWOULDBLOCK: [[falltrough]];
+        case EWOULDBLOCK:
+            [[falltrough]];
 #endif
         case EAGAIN:
             return;
-        case ECONNRESET: [[fallthrough]];
+        case ECONNRESET:
+            [[fallthrough]];
         case EPIPE:
             close_client_by_id(client->id);
             return;
@@ -516,16 +506,14 @@ void modbus_tcp_server::impl::execute_pending_tasks() {
         if (now_ > c->ts_idle_deadline) {
             log::info("client(id={:#x}) idle timeout expired", c->id);
             delayed_close.push_back(c->id);
-        }
-        else if (now_ > c->ts_request_complete_deadline) {
+        } else if (now_ > c->ts_request_complete_deadline) {
             log::info("client(id={:#x}) response complete timeout expired",
-                      c->id);
+                    c->id);
             delayed_close.push_back(c->id);
         }
     }
     for (auto id : delayed_close)
         close_client_by_id(id);
 }
-
 
 } // namespace mboxid

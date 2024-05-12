@@ -23,13 +23,11 @@ static bool compare_by_addr(const endpoint& ep1, const endpoint& ep2) {
     return (std::memcmp(ep1.addr.get(), ep2.addr.get(), ep1.addrlen) == 0);
 }
 
-std::list<endpoint> resolve_endpoint(
-    const char* host, const char* service, ip_protocol_version ip_version,
-    endpoint_usage usage)
-{
+std::list<endpoint> resolve_endpoint(const char* host, const char* service,
+        ip_protocol_version ip_version, endpoint_usage usage) {
     using namespace std::string_literals;
 
-    struct addrinfo hints{};
+    struct addrinfo hints {};
 
     hints.ai_flags = AI_ADDRCONFIG;
     if (usage == endpoint_usage::passive_open)
@@ -38,7 +36,7 @@ std::list<endpoint> resolve_endpoint(
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
-    struct addrinfo *result;
+    struct addrinfo* result;
     int err;
     do {
         err = getaddrinfo(host, service, &hints, &result);
@@ -47,11 +45,11 @@ std::list<endpoint> resolve_endpoint(
     if (err == EAI_SYSTEM)
         throw system_error(errno, "getaddrinfo");
     else if (err)
-        throw mboxid_error(errc::gai_error,
-                            "getaddrinfo: "s + gai_strerror(err));
+        throw mboxid_error(
+                errc::gai_error, "getaddrinfo: "s + gai_strerror(err));
 
-    std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)>
-        ai_free_guard(result, freeaddrinfo);
+    std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)> ai_free_guard(
+            result, freeaddrinfo);
 
     std::list<endpoint> endpoints;
     for (auto rp = result; rp; rp = rp->ai_next) {
@@ -76,29 +74,28 @@ std::list<endpoint> resolve_endpoint(
     return endpoints;
 }
 
-endpoint_addr to_endpoint_addr(const struct sockaddr* addr, socklen_t addrlen,
-                             bool numeric)
-{
+endpoint_addr to_endpoint_addr(
+        const struct sockaddr* addr, socklen_t addrlen, bool numeric) {
     using namespace std::string_literals;
 
     validate_argument(
-        (addr->sa_family == AF_INET) || (addr->sa_family == AF_INET6),
-        "to_endpoint_addr");
+            (addr->sa_family == AF_INET) || (addr->sa_family == AF_INET6),
+            "to_endpoint_addr");
 
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
     int err;
 
     do {
-        err = getnameinfo(addr, addrlen, host, sizeof(host),
-                    serv, sizeof(serv), numeric ? NI_NUMERICHOST : 0);
+        err = getnameinfo(addr, addrlen, host, sizeof(host), serv, sizeof(serv),
+                numeric ? NI_NUMERICHOST : 0);
     } while ((err == EAI_SYSTEM) && (errno == EINTR));
 
     if (err == EAI_SYSTEM)
         throw system_error(errno, "getnameinfo");
     else if (err)
-        throw mboxid_error(errc::gai_error,
-                            "getnameinfo: "s + gai_strerror(err));
+        throw mboxid_error(
+                errc::gai_error, "getnameinfo: "s + gai_strerror(err));
 
     endpoint_addr res;
     res.host = host;
@@ -108,4 +105,4 @@ endpoint_addr to_endpoint_addr(const struct sockaddr* addr, socklen_t addrlen,
     return res;
 }
 
-} // namespace mboxid
+} // namespace mboxid::net

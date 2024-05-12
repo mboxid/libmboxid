@@ -29,9 +29,9 @@ struct endpoint_addr {
     ip_protocol_version ip_version = ip_protocol_version::any;
 };
 
-endpoint_addr to_endpoint_addr(const struct sockaddr* addr, socklen_t addrlen,
-                               bool numeric = true);
+endpoint_addr to_endpoint_addr(
+        const struct sockaddr* addr, socklen_t addrlen, bool numeric = true);
 
-} // mboxid
+} // namespace mboxid::net
 
 #endif // LIBMBOXID_NETWORK_HPP

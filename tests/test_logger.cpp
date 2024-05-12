@@ -10,23 +10,22 @@ using namespace mboxid;
 
 class LoggerMock : public log::logger_base {
 public:
-    MOCK_METHOD(void, debug, (std::string_view  msg), (const, override));
-    MOCK_METHOD(void, info, (std::string_view  msg), (const, override));
-    MOCK_METHOD(void, warning, (std::string_view  msg), (const, override));
-    MOCK_METHOD(void, error, (std::string_view  msg), (const, override));
-    MOCK_METHOD(void, auth, (std::string_view  msg), (const, override));
+    MOCK_METHOD(void, debug, (std::string_view msg), (const, override));
+    MOCK_METHOD(void, info, (std::string_view msg), (const, override));
+    MOCK_METHOD(void, warning, (std::string_view msg), (const, override));
+    MOCK_METHOD(void, error, (std::string_view msg), (const, override));
+    MOCK_METHOD(void, auth, (std::string_view msg), (const, override));
 };
 
 TEST(LoggerTest, InstallInvalidLogger) {
-    EXPECT_THROW(install_logger(std::unique_ptr<log::logger_base>()),
-                 mboxid_error);
+    EXPECT_THROW(
+            install_logger(std::unique_ptr<log::logger_base>()), mboxid_error);
 }
 
 TEST(LoggerTest, UseLogger) {
     auto logger = std::make_unique<LoggerMock>();
     install_logger(std::move(logger));
-    const auto* mock =
-        dynamic_cast<const LoggerMock*>(log::borrow_logger());
+    const auto* mock = dynamic_cast<const LoggerMock*>(log::borrow_logger());
 
     EXPECT_CALL(*mock, debug("debug 3.14")).Times(1);
     EXPECT_CALL(*mock, info("info 3.15")).Times(1);

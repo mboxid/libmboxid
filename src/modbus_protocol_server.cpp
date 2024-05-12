@@ -9,36 +9,34 @@
 
 namespace mboxid {
 
-static void validate_min_req_length(std::span<const uint8_t> req, size_t len)
-{
+static void validate_min_req_length(std::span<const uint8_t> req, size_t len) {
     if (req.size() < len)
         throw mboxid_error(errc::parse_error, "request too short");
 }
 
-static void validate_exact_req_length(std::span<const uint8_t> req, size_t len)
-{
+static void validate_exact_req_length(
+        std::span<const uint8_t> req, size_t len) {
     if (req.size() != len)
         throw mboxid_error(errc::parse_error, "request wrong length");
 }
 
-template <typename T>
-bool is_in_range(T val, T min, T max) {
+template <typename T> bool is_in_range(T val, T min, T max) {
     return (val >= min) && (val <= max);
 }
 
-static size_t serialize_exception_response(std::span<uint8_t> dst,
-                                           function_code fc,  errc e) {
+static size_t serialize_exception_response(
+        std::span<uint8_t> dst, function_code fc, errc e) {
     expects(dst.size() >= 2, "buffer too small");
 
     uint8_t* p = dst.data();
     p += store8(p, static_cast<uint8_t>(function_code::exception) |
-                   static_cast<uint8_t>(fc));
+                           static_cast<uint8_t>(fc));
     p += store8(p, e);
     return p - dst.data();
 }
 
 static size_t process_read_bits(backend_connector& backend,
-                     std::span<const uint8_t> req, std::span<uint8_t> rsp) {
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
     // parse request
     validate_exact_req_length(req, read_bits_req_size);
 
@@ -53,7 +51,7 @@ static size_t process_read_bits(backend_connector& backend,
 
     if (!is_in_range(cnt, min_read_bits, max_read_bits))
         return serialize_exception_response(
-            rsp, fc, errc::modbus_exception_illegal_data_value);
+                rsp, fc, errc::modbus_exception_illegal_data_value);
 
     // invoke backend
     std::vector<bool> bits;
@@ -87,7 +85,7 @@ static size_t process_read_bits(backend_connector& backend,
 }
 
 static size_t process_read_registers(backend_connector& backend,
-                                std::span<const uint8_t> req, std::span<uint8_t> rsp) {
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
     // parse request
     validate_exact_req_length(req, read_registers_req_size);
 
@@ -102,7 +100,7 @@ static size_t process_read_registers(backend_connector& backend,
 
     if (!is_in_range(cnt, min_read_registers, max_read_registers))
         return serialize_exception_response(
-            rsp, fc, errc::modbus_exception_illegal_data_value);
+                rsp, fc, errc::modbus_exception_illegal_data_value);
 
     // invoke backend
     std::vector<uint16_t> regs;
@@ -124,8 +122,9 @@ static size_t process_read_registers(backend_connector& backend,
 
     // serialize response
     auto byte_cnt = cnt * sizeof(uint16_t);
-    expects(rsp.size() >= (read_registers_rsp_min_size + byte_cnt -
-                           sizeof(uint16_t)), "buffer too small");
+    expects(rsp.size() >=
+                    (read_registers_rsp_min_size + byte_cnt - sizeof(uint16_t)),
+            "buffer too small");
 
     auto p_rsp = rsp.data();
     p_rsp += store8(p_rsp, fc);
@@ -136,8 +135,7 @@ static size_t process_read_registers(backend_connector& backend,
 }
 
 static size_t process_write_single_coil(backend_connector& backend,
-                                        std::span<const uint8_t> req,
-                                        std::span<uint8_t> rsp) {
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
     // parse request
     validate_exact_req_length(req, write_coil_req_size);
 
@@ -152,10 +150,10 @@ static size_t process_write_single_coil(backend_connector& backend,
 
     if ((val != single_coil_off) && (val != single_coil_on))
         return serialize_exception_response(
-            rsp, fc, errc::modbus_exception_illegal_data_value);
+                rsp, fc, errc::modbus_exception_illegal_data_value);
 
     // invoke backend connector
-    std::vector<bool> bits {val == single_coil_on};
+    std::vector<bool> bits{val == single_coil_on};
 
     auto res = backend.write_coils(addr, bits);
     if (is_modbus_exception(res))
@@ -175,8 +173,7 @@ static size_t process_write_single_coil(backend_connector& backend,
 }
 
 static size_t process_write_single_register(backend_connector& backend,
-                                        std::span<const uint8_t> req,
-                                        std::span<uint8_t> rsp) {
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
     // parse request
     validate_exact_req_length(req, write_register_req_size);
 
@@ -210,8 +207,7 @@ static size_t process_write_single_register(backend_connector& backend,
 }
 
 static size_t process_write_multiple_coils(backend_connector& backend,
-                                            std::span<const uint8_t> req,
-                                            std::span<uint8_t> rsp) {
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
     // parse request
     validate_min_req_length(req, write_multiple_coils_req_min_size);
 
@@ -227,9 +223,9 @@ static size_t process_write_multiple_coils(backend_connector& backend,
     p_req += fetch8(byte_cnt, p_req);
 
     if (!is_in_range(cnt, min_write_coils, max_write_coils) ||
-        (byte_cnt != bit_to_byte_count(cnt)))
+            (byte_cnt != bit_to_byte_count(cnt)))
         return serialize_exception_response(
-            rsp, fc, errc::modbus_exception_illegal_data_value);
+                rsp, fc, errc::modbus_exception_illegal_data_value);
 
     std::vector<bool> bits;
     parse_bits(req.subspan(p_req - req.data()), bits, cnt);
@@ -253,8 +249,7 @@ static size_t process_write_multiple_coils(backend_connector& backend,
 }
 
 static size_t process_write_multiple_registers(backend_connector& backend,
-                                           std::span<const uint8_t> req,
-                                           std::span<uint8_t> rsp) {
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
     // parse request
     validate_min_req_length(req, write_multiple_registers_req_min_size);
 
@@ -270,9 +265,9 @@ static size_t process_write_multiple_registers(backend_connector& backend,
     p_req += fetch8(byte_cnt, p_req);
 
     if (!is_in_range(cnt, min_write_registers, max_write_registers) ||
-        (byte_cnt != (cnt * sizeof(uint16_t))))
+            (byte_cnt != (cnt * sizeof(uint16_t))))
         return serialize_exception_response(
-            rsp, fc, errc::modbus_exception_illegal_data_value);
+                rsp, fc, errc::modbus_exception_illegal_data_value);
 
     std::vector<uint16_t> regs;
     parse_regs(req.subspan(p_req - req.data()), regs, cnt);
@@ -285,7 +280,8 @@ static size_t process_write_multiple_registers(backend_connector& backend,
         throw mboxid_error(res, "backend write coils");
 
     // serialize response
-    expects(rsp.size() >= write_multiple_registers_rsp_size, "buffer too small");
+    expects(rsp.size() >= write_multiple_registers_rsp_size,
+            "buffer too small");
 
     auto p_rsp = rsp.data();
     p_rsp += store8(p_rsp, fc);
@@ -296,8 +292,7 @@ static size_t process_write_multiple_registers(backend_connector& backend,
 }
 
 static size_t process_mask_write_registers(backend_connector& backend,
-                                               std::span<const uint8_t> req,
-                                               std::span<uint8_t> rsp) {
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
     // parse request
     validate_exact_req_length(req, mask_write_register_req_size);
 
@@ -339,10 +334,8 @@ static size_t process_mask_write_registers(backend_connector& backend,
     return p_rsp - rsp.data();
 }
 
-static size_t
-process_read_write_multiple_registers(backend_connector& backend,
-                                               std::span<const uint8_t> req,
-                                               std::span<uint8_t> rsp) {
+static size_t process_read_write_multiple_registers(backend_connector& backend,
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
     // parse request
     validate_min_req_length(req, read_write_multiple_registers_req_min_size);
 
@@ -362,12 +355,12 @@ process_read_write_multiple_registers(backend_connector& backend,
     p_req += fetch8(byte_cnt_wr, p_req);
 
     if (!is_in_range(
-            cnt_rd, min_rdwr_read_registers, max_rdwr_read_registers) ||
-        !is_in_range(
-            cnt_wr, min_rdwr_write_registers, max_rdwr_write_registers) ||
-        (byte_cnt_wr != (cnt_wr * sizeof(uint16_t))))
+                cnt_rd, min_rdwr_read_registers, max_rdwr_read_registers) ||
+            !is_in_range(cnt_wr, min_rdwr_write_registers,
+                    max_rdwr_write_registers) ||
+            (byte_cnt_wr != (cnt_wr * sizeof(uint16_t))))
         return serialize_exception_response(
-            rsp, fc, errc::modbus_exception_illegal_data_value);
+                rsp, fc, errc::modbus_exception_illegal_data_value);
 
     std::vector<uint16_t> regs_wr;
     parse_regs(req.subspan(p_req - req.data()), regs_wr, cnt_wr);
@@ -376,7 +369,7 @@ process_read_write_multiple_registers(backend_connector& backend,
     std::vector<uint16_t> regs_rd;
     regs_rd.reserve(cnt_rd);
     auto res = backend.write_read_holding_registers(
-                    addr_wr, regs_wr, addr_rd, cnt_rd, regs_rd);
+            addr_wr, regs_wr, addr_rd, cnt_rd, regs_rd);
     if (is_modbus_exception(res))
         return serialize_exception_response(rsp, fc, res);
     else if (res != errc::none)
@@ -388,7 +381,8 @@ process_read_write_multiple_registers(backend_connector& backend,
     // serialize response
     auto byte_cnt_rd = cnt_rd * sizeof(uint16_t);
     expects(rsp.size() >= (read_write_multiple_registers_rsp_min_size +
-                           byte_cnt_rd - sizeof(uint16_t)), "buffer too small");
+                                  byte_cnt_rd - sizeof(uint16_t)),
+            "buffer too small");
 
     auto p_rsp = rsp.data();
     p_rsp += store8(p_rsp, fc);
@@ -399,8 +393,7 @@ process_read_write_multiple_registers(backend_connector& backend,
 }
 
 static size_t process_read_device_information(backend_connector& backend,
-                                                    std::span<const uint8_t> req,
-                                                    std::span<uint8_t> rsp) {
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
     // parse request
     validate_exact_req_length(req, read_device_identification_req_size);
 
@@ -416,16 +409,16 @@ static size_t process_read_device_information(backend_connector& backend,
     fetch8(id, p_req);
 
     if ((mei != mei_type::modbus) || (code != read_device_id_code::basic))
-        return serialize_exception_response(rsp, fc,
-                                errc::modbus_exception_illegal_data_value);
+        return serialize_exception_response(
+                rsp, fc, errc::modbus_exception_illegal_data_value);
     if (id != object_id::vendor_name)
-        return serialize_exception_response(rsp, fc,
-                                errc::modbus_exception_illegal_data_address);
+        return serialize_exception_response(
+                rsp, fc, errc::modbus_exception_illegal_data_address);
 
     // invoke backend
     std::string vendor, product, version;
-    auto res = backend.get_basic_device_identification(vendor, product,
-                                                       version);
+    auto res =
+            backend.get_basic_device_identification(vendor, product, version);
 
     if (is_modbus_exception(res))
         return serialize_exception_response(rsp, fc, res);
@@ -433,20 +426,19 @@ static size_t process_read_device_information(backend_connector& backend,
         throw mboxid_error(res, "backend device identification");
 
     // serialize response
-    expects(rsp.size() >=
-                (read_device_identification_rsp_min_size
-                    + (vendor.length() - 1)
-                    + 2 + product.length()
-                    + 2 + version.length()), "buffer too small");
+    expects(rsp.size() >= (read_device_identification_rsp_min_size +
+                                  (vendor.length() - 1) + 2 + product.length() +
+                                  2 + version.length()),
+            "buffer too small");
 
     auto p_rsp = rsp.data();
     p_rsp += store8(p_rsp, fc);
     p_rsp += store8(p_rsp, mei_type::modbus);
     p_rsp += store8(p_rsp, code);
     p_rsp += store8(p_rsp, read_device_id_code::basic); // conformity level
-    p_rsp += store8(p_rsp, 0x00);   // more follows: no
-    p_rsp += store8(p_rsp, 0x00);   // next object id
-    p_rsp += store8(p_rsp, 0x03);   // number of objects
+    p_rsp += store8(p_rsp, 0x00);                       // more follows: no
+    p_rsp += store8(p_rsp, 0x00);                       // next object id
+    p_rsp += store8(p_rsp, 0x03);                       // number of objects
     p_rsp += store8(p_rsp, object_id::vendor_name);
     p_rsp += store8(p_rsp, vendor.length());
     std::memcpy(p_rsp, vendor.c_str(), vendor.length());
@@ -463,16 +455,18 @@ static size_t process_read_device_information(backend_connector& backend,
     return p_rsp - rsp.data();
 }
 
-size_t server_engine(backend_connector& backend,
-                     std::span<const uint8_t> req, std::span<uint8_t> rsp) {
+size_t server_engine(backend_connector& backend, std::span<const uint8_t> req,
+        std::span<uint8_t> rsp) {
     validate_min_req_length(req, min_pdu_size);
 
     auto fc = static_cast<function_code>(req[0]);
     switch (fc) {
-    case function_code::read_coils: [[fallthrough]];
+    case function_code::read_coils:
+        [[fallthrough]];
     case function_code::read_discrete_inputs:
         return process_read_bits(backend, req, rsp);
-    case function_code::read_holding_registers: [[fallthrough]];
+    case function_code::read_holding_registers:
+        [[fallthrough]];
     case function_code::read_input_registers:
         return process_read_registers(backend, req, rsp);
     case function_code::write_single_coil:
@@ -491,7 +485,7 @@ size_t server_engine(backend_connector& backend,
         return process_read_device_information(backend, req, rsp);
     default:
         return serialize_exception_response(
-            rsp, fc, errc::modbus_exception_illegal_function);
+                rsp, fc, errc::modbus_exception_illegal_function);
     }
 }
 

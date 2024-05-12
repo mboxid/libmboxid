@@ -29,19 +29,18 @@ TEST(ModbusTcpServerBasicTest, Shutdown) {
     server.shutdown();
 
     EXPECT_EQ(f.wait_for(1s), std::future_status::ready)
-        << "failed to stop server";
-    (void) f.get(); // check for exception thrown by the server
+            << "failed to stop server";
+    (void)f.get(); // check for exception thrown by the server
 }
 
-class BackendConnectorMock : public backend_connector
-{
+class BackendConnectorMock : public backend_connector {
 public:
     MOCK_METHOD(void, ticker, (), (override));
 
-    MOCK_METHOD(bool, authorize, (client_id id,const net::endpoint_addr&
-                                                    numeric_client_addr,
-                                  const sockaddr* addr, socklen_t addrlen),
-                (override));
+    MOCK_METHOD(bool, authorize,
+            (client_id id, const net::endpoint_addr& numeric_client_addr,
+                    const sockaddr* addr, socklen_t addrlen),
+            (override));
 
     MOCK_METHOD(void, disconnect, (client_id id), (override));
     MOCK_METHOD(void, alive, (client_id id), (override));
@@ -70,16 +69,14 @@ protected:
         server_run_thd.join();
     }
 
-
-    BackendConnectorMock* backend;  // owned and freed by the server
+    BackendConnectorMock* backend; // owned and freed by the server
     std::unique_ptr<modbus_tcp_server> server;
     std::thread server_run_thd;
 };
 
 static int connect_to_server() {
-    auto endpoints =
-        resolve_endpoint("localhost", "1502", net::ip_protocol_version::v4,
-                         net::endpoint_usage::active_open);
+    auto endpoints = resolve_endpoint("localhost", "1502",
+            net::ip_protocol_version::v4, net::endpoint_usage::active_open);
     auto& ep = endpoints.front();
 
     int fd;
@@ -122,9 +119,9 @@ TEST_F(ModbusTcpServerTest, RequestResponse) {
     int fd = connect_to_server();
     ASSERT_NE(fd, -1);
 
-    U8Vec req { 0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01, 0x00, 0x00,
-              0x00, 0x01};
-    U8Vec rsp_expected { 0x47, 0x11, 0x00, 0x00, 0x00, 0x03, 0xaa, 0x81, 0x04 };
+    U8Vec req{0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01, 0x00, 0x00, 0x00,
+            0x01};
+    U8Vec rsp_expected{0x47, 0x11, 0x00, 0x00, 0x00, 0x03, 0xaa, 0x81, 0x04};
     U8Vec rsp(rsp_expected.size());
 
     ssize_t res;
@@ -132,11 +129,11 @@ TEST_F(ModbusTcpServerTest, RequestResponse) {
     res = TEMP_FAILURE_RETRY(write(fd, req.data(), req.size()));
     EXPECT_EQ(res, req.size());
 
-    auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
-                        rsp.size());
+    auto f = std::async(
+            std::launch::async, receive_all, fd, rsp.data(), rsp.size());
 
     EXPECT_EQ(f.wait_for(200ms), std::future_status::ready)
-                << "server did not respond within the time limit";
+            << "server did not respond within the time limit";
     res = f.get(); // check for exception thrown by the server
     EXPECT_GT(res, 0);
     EXPECT_EQ(rsp, rsp_expected);
@@ -150,8 +147,9 @@ TEST_F(ModbusTcpServerTest, CloseClientConnection) {
     using namespace std::chrono_literals;
 
     volatile modbus_tcp_server::client_id id = 0;
-    EXPECT_CALL(*backend, authorize).Times(1)
-        .WillOnce(DoAll(SaveArg<0>(&id), Return(true)));
+    EXPECT_CALL(*backend, authorize)
+            .Times(1)
+            .WillOnce(DoAll(SaveArg<0>(&id), Return(true)));
     EXPECT_CALL(*backend, disconnect).Times(1);
 
     int fd = connect_to_server();
@@ -165,11 +163,11 @@ TEST_F(ModbusTcpServerTest, CloseClientConnection) {
 
     U8Vec rsp(max_pdu_size);
 
-    auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
-                        rsp.size());
+    auto f = std::async(
+            std::launch::async, receive_all, fd, rsp.data(), rsp.size());
 
     EXPECT_EQ(f.wait_for(500ms), std::future_status::ready)
-                << "server did not respond within the time limit";
+            << "server did not respond within the time limit";
     auto res = f.get(); // check for exception thrown by the server
     EXPECT_EQ(res, 0);
 
@@ -187,11 +185,11 @@ TEST_F(ModbusTcpServerTest, IdleTimeout) {
 
     U8Vec rsp(max_pdu_size);
 
-    auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
-                        rsp.size());
+    auto f = std::async(
+            std::launch::async, receive_all, fd, rsp.data(), rsp.size());
 
     EXPECT_EQ(f.wait_for(2000ms), std::future_status::ready)
-                << "server did not respond within the time limit";
+            << "server did not respond within the time limit";
     auto res = f.get(); // check for exception thrown by the server
     EXPECT_EQ(res, 0);
 
@@ -207,7 +205,7 @@ TEST_F(ModbusTcpServerTest, RequestTimeout) {
     int fd = connect_to_server();
     ASSERT_NE(fd, -1);
 
-    U8Vec req { 0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01 };
+    U8Vec req{0x47, 0x11, 0x00, 0x00, 0x00, 0x06, 0xaa, 0x01};
 
     ssize_t res;
 
@@ -216,11 +214,11 @@ TEST_F(ModbusTcpServerTest, RequestTimeout) {
 
     U8Vec rsp(max_pdu_size);
 
-    auto f = std::async(std::launch::async, receive_all, fd, rsp.data(),
-                        rsp.size());
+    auto f = std::async(
+            std::launch::async, receive_all, fd, rsp.data(), rsp.size());
 
     EXPECT_EQ(f.wait_for(200ms), std::future_status::ready)
-                << "server did not respond within the time limit";
+            << "server did not respond within the time limit";
     res = f.get(); // check for exception thrown by the server
     EXPECT_EQ(res, 0);
 

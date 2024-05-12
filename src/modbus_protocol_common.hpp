@@ -136,20 +136,18 @@ static inline size_t bit_to_byte_count(size_t n_bits) {
 
 void parse_mbap_header(std::span<const uint8_t> src, mbap_header& header);
 
-size_t serialize_mbap_header(std::span<uint8_t> dst,
-                             const mbap_header& header);
+size_t serialize_mbap_header(std::span<uint8_t> dst, const mbap_header& header);
 
-size_t parse_bits(std::span<const uint8_t> src,
-                       std::vector<bool>& bits, size_t cnt);
+size_t parse_bits(
+        std::span<const uint8_t> src, std::vector<bool>& bits, size_t cnt);
 
-size_t serialize_bits(std::span<uint8_t> dst,
-                      const std::vector<bool>& bits);
+size_t serialize_bits(std::span<uint8_t> dst, const std::vector<bool>& bits);
 
-size_t parse_regs(std::span<const uint8_t> src,
-                       std::vector<uint16_t>& regs, size_t cnt);
+size_t parse_regs(
+        std::span<const uint8_t> src, std::vector<uint16_t>& regs, size_t cnt);
 
-size_t serialize_regs(std::span<uint8_t> dst,
-                           const std::vector<uint16_t>& regs);
+size_t serialize_regs(
+        std::span<uint8_t> dst, const std::vector<uint16_t>& regs);
 
 } // namespace mboxid
 

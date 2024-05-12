@@ -52,27 +52,24 @@ public:
 /// Exception signaling an error that originate from the operating system.
 class system_error : public exception {
 public:
-    explicit system_error(int ev)
-        : exception(ev, std::system_category()) {}
+    explicit system_error(int ev) : exception(ev, std::system_category()) {}
 
     system_error(int ev, const char* what_arg)
-        : exception(ev, std::system_category(), what_arg) {}
+            : exception(ev, std::system_category(), what_arg) {}
 
     system_error(int ev, const std::string& what_arg)
-        : exception(ev, std::system_category(), what_arg) {}
+            : exception(ev, std::system_category(), what_arg) {}
 };
 
 class mboxid_error : public exception {
 public:
-    explicit mboxid_error(errc errc)
-        : exception(make_error_code(errc)) {}
+    explicit mboxid_error(errc errc) : exception(make_error_code(errc)) {}
 
     mboxid_error(errc errc, const char* what_arg)
-        : exception(make_error_code(errc), what_arg) {}
+            : exception(make_error_code(errc), what_arg) {}
 
     mboxid_error(errc errc, const std::string& what_arg)
-        : exception(make_error_code(errc), what_arg) {}
-
+            : exception(make_error_code(errc), what_arg) {}
 };
 
 static inline bool is_modbus_exception(errc e) {
@@ -98,8 +95,7 @@ static inline bool is_modbus_exception(const exception& e) {
 
 namespace std {
 
-template <>
-struct is_error_code_enum<mboxid::errc> : public true_type {};
+template <> struct is_error_code_enum<mboxid::errc> : public true_type {};
 
 } // namespace std
 

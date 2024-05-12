@@ -28,38 +28,34 @@ static void wait_signal(const sigset_t* set) {
 
 class backend_connector : public mboxid::backend_connector {
 public:
-
-    mboxid::errc read_coils(unsigned  addr, std::size_t cnt,
-                            std::vector<bool>& bits) override;
-    mboxid::errc read_discrete_inputs(unsigned  addr, std::size_t cnt,
-                            std::vector<bool>& bits) override;
+    mboxid::errc read_coils(
+            unsigned addr, std::size_t cnt, std::vector<bool>& bits) override;
+    mboxid::errc read_discrete_inputs(
+            unsigned addr, std::size_t cnt, std::vector<bool>& bits) override;
     mboxid::errc read_holding_registers(unsigned addr, std::size_t cnt,
-                            std::vector<std::uint16_t>& regs) override;
+            std::vector<std::uint16_t>& regs) override;
     mboxid::errc read_input_registers(unsigned addr, std::size_t cnt,
-                                        std::vector<std::uint16_t>& regs)
-        override;
-    mboxid::errc write_coils(unsigned addr, const std::vector<bool>& bits)
-        override;
-    mboxid::errc write_holding_registers(unsigned addr, const
-                                         std::vector<std::uint16_t>& regs)
-        override;
+            std::vector<std::uint16_t>& regs) override;
+    mboxid::errc write_coils(
+            unsigned addr, const std::vector<bool>& bits) override;
+    mboxid::errc write_holding_registers(
+            unsigned addr, const std::vector<std::uint16_t>& regs) override;
 
     mboxid::errc write_read_holding_registers(unsigned addr_wr,
-                        const std::vector<std::uint16_t>& regs_wr,
-                        unsigned addr_rd, std::size_t cnt_rd,
-                        std::vector<std::uint16_t>& regs_rd) override;
+            const std::vector<std::uint16_t>& regs_wr, unsigned addr_rd,
+            std::size_t cnt_rd, std::vector<std::uint16_t>& regs_rd) override;
 
 private:
-    std::vector<bool> coils{
-        false, false, false, false, false, false, false, false, false, false };
+    std::vector<bool> coils{false, false, false, false, false, false, false,
+            false, false, false};
     std::vector<bool> discrete_inputs{
-        false, true, true, false, false, false, false, false, false, true };
+            false, true, true, false, false, false, false, false, false, true};
     std::vector<uint16_t> input_registers{0, 1, 2, 3, 4};
     std::vector<uint16_t> holding_registers{0, 0, 0, 0, 0};
 };
 
-mboxid::errc backend_connector::read_coils(unsigned int addr, std::size_t cnt,
-                                           std::vector<bool>& bits) {
+mboxid::errc backend_connector::read_coils(
+        unsigned int addr, std::size_t cnt, std::vector<bool>& bits) {
     if (!cnt || (cnt > coils.size()) || ((addr + cnt) > coils.size()))
         return mboxid::errc::modbus_exception_illegal_data_address;
 
@@ -163,8 +159,7 @@ static void server_thread(std::shared_ptr<mboxid::modbus_tcp_server> server) {
         server->set_server_addr("localhost", "1502");
         server->set_backend(std::make_unique<backend_connector>());
         server->run();
-    }
-    catch (const mboxid::exception& e) {
+    } catch (const mboxid::exception& e) {
         std::cerr << e.code() << ": " << e.what() << "\n";
         exit_code = EXIT_FAILURE;
         kill(getpid(), SIGTERM);

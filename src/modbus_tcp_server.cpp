@@ -11,13 +11,12 @@ modbus_tcp_server::modbus_tcp_server() : pimpl(std::make_unique<impl>()) {}
 modbus_tcp_server::~modbus_tcp_server() = default;
 
 void modbus_tcp_server::set_server_addr(const std::string& host,
-                                        const std::string& service,
-                                        net::ip_protocol_version ip_version) {
+        const std::string& service, net::ip_protocol_version ip_version) {
     pimpl->set_server_addr(host, service, ip_version);
 }
 
 void modbus_tcp_server::set_backend(
-    std::unique_ptr<backend_connector> backend) {
+        std::unique_ptr<backend_connector> backend) {
     pimpl->set_backend(std::move(backend));
 }
 
@@ -25,13 +24,9 @@ backend_connector* modbus_tcp_server::borrow_backend() {
     return pimpl->borrow_backend();
 }
 
-void modbus_tcp_server::run() {
-    pimpl->run();
-}
+void modbus_tcp_server::run() { pimpl->run(); }
 
-void modbus_tcp_server::shutdown() {
-    pimpl->shutdown();
-}
+void modbus_tcp_server::shutdown() { pimpl->shutdown(); }
 
 void modbus_tcp_server::close_client_connection(client_id id) {
     pimpl->close_client_connection(id);

@@ -18,15 +18,11 @@ struct endpoint {
     int protocol;
 };
 
-enum class endpoint_usage {
-    passive_open,
-    active_open
-};
+enum class endpoint_usage { passive_open, active_open };
 
-std::list<endpoint> resolve_endpoint(
-    const char* host, const char* service, ip_protocol_version ip_version,
-    endpoint_usage usage);
+std::list<endpoint> resolve_endpoint(const char* host, const char* service,
+        ip_protocol_version ip_version, endpoint_usage usage);
 
-} // namespace mboxid
+} // namespace mboxid::net
 
 #endif // LIBMBOXID_NETWORK_PRIVATE_HPP

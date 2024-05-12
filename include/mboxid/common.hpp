@@ -24,6 +24,6 @@ constexpr auto no_timeout = milliseconds::max();
 constexpr const char* server_default_port = "502";
 constexpr const char* secure_server_default_port = "802";
 
-}   // namespace mboxid
+} // namespace mboxid
 
 #endif // LIBMBOXID_COMMON_HPP

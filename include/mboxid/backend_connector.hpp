@@ -27,10 +27,9 @@ public:
     virtual ~backend_connector() = default;
 
     virtual bool authorize([[maybe_unused]] client_id id,
-                           [[maybe_unused]] const net::endpoint_addr&
-                                   numeric_client_addr,
-                           [[maybe_unused]] const sockaddr* addr,
-                           [[maybe_unused]] socklen_t addrlen) {
+            [[maybe_unused]] const net::endpoint_addr& numeric_client_addr,
+            [[maybe_unused]] const sockaddr* addr,
+            [[maybe_unused]] socklen_t addrlen) {
         return true;
     }
 
@@ -44,61 +43,52 @@ public:
      * This method may be overridden to implement individual inactivity
      * timeouts for the clients, or to provide some kind of health monitoring.
      */
-    virtual void ticker() { }
+    virtual void ticker() {}
 
     virtual errc read_coils([[maybe_unused]] unsigned addr,
-                            [[maybe_unused]] std::size_t cnt,
-                            [[maybe_unused]] std::vector<bool>& bits) {
+            [[maybe_unused]] std::size_t cnt,
+            [[maybe_unused]] std::vector<bool>& bits) {
         return errc::modbus_exception_slave_or_server_failure;
     }
 
     virtual errc read_discrete_inputs([[maybe_unused]] unsigned addr,
-                                      [[maybe_unused]] std::size_t cnt,
-                            [[maybe_unused]] std::vector<bool>& bits) {
+            [[maybe_unused]] std::size_t cnt,
+            [[maybe_unused]] std::vector<bool>& bits) {
         return errc::modbus_exception_slave_or_server_failure;
     }
 
     virtual errc read_holding_registers([[maybe_unused]] unsigned addr,
-                                        [[maybe_unused]] std::size_t cnt,
-                                        [[maybe_unused]]
-                                        std::vector<std::uint16_t>& regs) {
+            [[maybe_unused]] std::size_t cnt,
+            [[maybe_unused]] std::vector<std::uint16_t>& regs) {
         return errc::modbus_exception_slave_or_server_failure;
     }
 
     virtual errc read_input_registers([[maybe_unused]] unsigned addr,
-                                      [[maybe_unused]] std::size_t cnt,
-                                      [[maybe_unused]]
-                                      std::vector<std::uint16_t>& regs) {
+            [[maybe_unused]] std::size_t cnt,
+            [[maybe_unused]] std::vector<std::uint16_t>& regs) {
         return errc::modbus_exception_slave_or_server_failure;
     }
 
     virtual errc write_coils([[maybe_unused]] unsigned addr,
-                             [[maybe_unused]] const std::vector<bool>& bits) {
+            [[maybe_unused]] const std::vector<bool>& bits) {
         return errc::modbus_exception_slave_or_server_failure;
     }
 
     virtual errc write_holding_registers([[maybe_unused]] unsigned addr,
-                                         [[maybe_unused]]
-                                         const std::vector<std::uint16_t>&
-                                             regs) {
+            [[maybe_unused]] const std::vector<std::uint16_t>& regs) {
         return errc::modbus_exception_slave_or_server_failure;
     }
 
     virtual errc write_read_holding_registers([[maybe_unused]] unsigned addr_wr,
-                                    [[maybe_unused]]
-                                              const std::vector<std::uint16_t>&
-                                                  regs_wr,
-                                    [[maybe_unused]] unsigned addr_rd,
-                                    [[maybe_unused]] std::size_t cnt_rd,
-                                    [[maybe_unused]]
-                                              std::vector<std::uint16_t>&
-                                                  regs_rd) {
+            [[maybe_unused]] const std::vector<std::uint16_t>& regs_wr,
+            [[maybe_unused]] unsigned addr_rd,
+            [[maybe_unused]] std::size_t cnt_rd,
+            [[maybe_unused]] std::vector<std::uint16_t>& regs_rd) {
         return errc::modbus_exception_slave_or_server_failure;
     }
 
     virtual errc get_basic_device_identification(
-                std::string& vendor, std::string& product, std::string& version)
-    {
+            std::string& vendor, std::string& product, std::string& version) {
         vendor = get_vendor();
         product = get_product_name();
         version = get_version();

@@ -13,8 +13,8 @@ static_assert(sizeof(unsigned) >= sizeof(uint16_t), "unsigned type too small");
 constexpr unsigned u16_min = 0U;
 constexpr unsigned u16_max = 0xffffU;
 
-static void validate_exact_rsp_length(std::span<const uint8_t> rsp, size_t len)
-{
+static void validate_exact_rsp_length(
+        std::span<const uint8_t> rsp, size_t len) {
     if (rsp.size() != len)
         throw mboxid_error(errc::parse_error, "response wrong length");
 }
@@ -24,8 +24,8 @@ void validate_field(bool cond, const char* msg) {
         throw mboxid_error(errc::parse_error, msg);
 }
 
-static void check_for_exception(std::span<const uint8_t> rsp, function_code fc)
-{
+static void check_for_exception(
+        std::span<const uint8_t> rsp, function_code fc) {
     if (rsp.size() != exception_rsp_size)
         return;
 
@@ -37,7 +37,7 @@ static void check_for_exception(std::span<const uint8_t> rsp, function_code fc)
         return;
 
     validate_field((fc_rsp & ~msk) == static_cast<unsigned>(fc),
-                   "modbus exception: function code");
+            "modbus exception: function code");
 
     auto err = static_cast<errc>(exception_code);
     validate_field(is_modbus_exception(err), "modbus exception: code");
@@ -46,9 +46,8 @@ static void check_for_exception(std::span<const uint8_t> rsp, function_code fc)
     throw mboxid_error(err);
 }
 
-size_t serialize_read_bits_request(std::span<uint8_t> dst, function_code fc,
-                                   unsigned addr, size_t cnt)
-{
+size_t serialize_read_bits_request(
+        std::span<uint8_t> dst, function_code fc, unsigned addr, size_t cnt) {
     validate_argument(addr, u16_min, u16_max, "addr");
     validate_argument(cnt, min_read_bits, max_read_bits, "cnt");
     expects(dst.size() >= read_bits_req_size, "buffer too small");
@@ -63,7 +62,7 @@ size_t serialize_read_bits_request(std::span<uint8_t> dst, function_code fc,
 }
 
 size_t parse_read_bits_response(std::span<const uint8_t> src, function_code fc,
-                                std::vector<bool>& coils, size_t cnt) {
+        std::vector<bool>& coils, size_t cnt) {
     check_for_exception(src, fc);
 
     auto byte_cnt = bit_to_byte_count(cnt);
@@ -84,9 +83,8 @@ size_t parse_read_bits_response(std::span<const uint8_t> src, function_code fc,
     return p - src.data();
 }
 
-size_t serialize_read_registers_request(std::span<uint8_t> dst,
-                                        function_code fc,
-                                        unsigned addr, size_t cnt) {
+size_t serialize_read_registers_request(
+        std::span<uint8_t> dst, function_code fc, unsigned addr, size_t cnt) {
     validate_argument(addr, u16_min, u16_max, "addr");
     validate_argument(cnt, min_read_registers, max_read_registers, "cnt");
     expects(dst.size() >= read_registers_req_size, "buffer too small");
@@ -100,14 +98,12 @@ size_t serialize_read_registers_request(std::span<uint8_t> dst,
     return p - dst.data();
 }
 
-
 size_t parse_read_registers_response(std::span<const uint8_t> src,
-                                     function_code fc,
-                                     std::vector<uint16_t>& regs, size_t cnt) {
+        function_code fc, std::vector<uint16_t>& regs, size_t cnt) {
     check_for_exception(src, fc);
 
-    validate_exact_rsp_length(src, read_registers_rsp_min_size +
-                              sizeof(uint16_t) * (cnt - 1));
+    validate_exact_rsp_length(
+            src, read_registers_rsp_min_size + sizeof(uint16_t) * (cnt - 1));
 
     auto p = src.data();
     function_code fc_rsp;
@@ -124,8 +120,8 @@ size_t parse_read_registers_response(std::span<const uint8_t> src,
     return p - src.data();
 }
 
-size_t serialize_write_single_coil_request(std::span<uint8_t> dst,
-                                           unsigned addr, bool on) {
+size_t serialize_write_single_coil_request(
+        std::span<uint8_t> dst, unsigned addr, bool on) {
     validate_argument(addr, u16_min, u16_max, "addr");
     expects(dst.size() >= write_coil_req_size, "buffer too small");
 
@@ -138,8 +134,8 @@ size_t serialize_write_single_coil_request(std::span<uint8_t> dst,
     return p - dst.data();
 }
 
-size_t parse_write_single_coil_response(std::span<const uint8_t> src,
-                                        unsigned addr, bool on) {
+size_t parse_write_single_coil_response(
+        std::span<const uint8_t> src, unsigned addr, bool on) {
     constexpr auto fc = function_code::write_single_coil;
     check_for_exception(src, fc);
 
@@ -161,8 +157,8 @@ size_t parse_write_single_coil_response(std::span<const uint8_t> src,
     return p - src.data();
 }
 
-size_t serialize_write_single_register_request(std::span<uint8_t> dst,
-                                               unsigned addr, unsigned val) {
+size_t serialize_write_single_register_request(
+        std::span<uint8_t> dst, unsigned addr, unsigned val) {
     validate_argument(addr, u16_min, u16_max, "addr");
     validate_argument(val, u16_min, u16_max, "val");
     expects(dst.size() >= write_register_req_size, "buffer too small");
@@ -176,9 +172,8 @@ size_t serialize_write_single_register_request(std::span<uint8_t> dst,
     return p - dst.data();
 }
 
-
-size_t parse_write_single_register_response(std::span<const uint8_t> src,
-                                            unsigned addr, unsigned val) {
+size_t parse_write_single_register_response(
+        std::span<const uint8_t> src, unsigned addr, unsigned val) {
     constexpr auto fc = function_code::write_single_register;
     check_for_exception(src, fc);
 
@@ -200,9 +195,8 @@ size_t parse_write_single_register_response(std::span<const uint8_t> src,
     return p - src.data();
 }
 
-size_t serialize_write_multiple_coils_request(std::span<uint8_t> dst,
-                                              unsigned addr,
-                                              const std::vector<bool>& bits) {
+size_t serialize_write_multiple_coils_request(
+        std::span<uint8_t> dst, unsigned addr, const std::vector<bool>& bits) {
     validate_argument(addr, u16_min, u16_max, "addr");
     auto cnt = bits.size();
     validate_argument(cnt, min_write_coils, max_write_coils, "cnt");
@@ -221,8 +215,8 @@ size_t serialize_write_multiple_coils_request(std::span<uint8_t> dst,
     return p - dst.data();
 }
 
-size_t parse_write_multiple_coils_response(std::span<const uint8_t> src,
-                                           unsigned addr, size_t cnt) {
+size_t parse_write_multiple_coils_response(
+        std::span<const uint8_t> src, unsigned addr, size_t cnt) {
     constexpr auto fc = function_code::write_multiple_coils;
     check_for_exception(src, fc);
 
@@ -245,14 +239,12 @@ size_t parse_write_multiple_coils_response(std::span<const uint8_t> src,
 }
 
 size_t serialize_write_multiple_registers_request(std::span<uint8_t> dst,
-                                                  unsigned addr,
-                                                  const std::vector<uint16_t>&
-                                                  regs) {
+        unsigned addr, const std::vector<uint16_t>& regs) {
     validate_argument(addr, u16_min, u16_max, "addr");
     auto cnt = regs.size();
     validate_argument(cnt, min_write_registers, max_write_registers, "cnt");
     expects(dst.size() >= (write_multiple_registers_req_min_size +
-                              sizeof(uint16_t) * (cnt - 1)),
+                                  sizeof(uint16_t) * (cnt - 1)),
             "buffer too small");
 
     auto p = dst.data();
@@ -266,8 +258,8 @@ size_t serialize_write_multiple_registers_request(std::span<uint8_t> dst,
     return p - dst.data();
 }
 
-size_t parse_write_multiple_registers_response(std::span<const uint8_t> src,
-                                               unsigned addr, size_t cnt) {
+size_t parse_write_multiple_registers_response(
+        std::span<const uint8_t> src, unsigned addr, size_t cnt) {
     constexpr auto fc = function_code::write_multiple_registers;
     check_for_exception(src, fc);
 
@@ -290,9 +282,7 @@ size_t parse_write_multiple_registers_response(std::span<const uint8_t> src,
 }
 
 size_t serialize_mask_write_register_request(std::span<uint8_t> dst,
-                                             unsigned addr,
-                                             unsigned and_msk,
-                                             unsigned or_msk) {
+        unsigned addr, unsigned and_msk, unsigned or_msk) {
     validate_argument(addr, u16_min, u16_max, "addr");
     validate_argument(and_msk, u16_min, u16_max, "and_msk");
     validate_argument(or_msk, u16_min, u16_max, "or_msk");
@@ -309,8 +299,7 @@ size_t serialize_mask_write_register_request(std::span<uint8_t> dst,
 }
 
 size_t parse_mask_write_register_response(std::span<const uint8_t> src,
-                                          unsigned addr,
-                                          unsigned and_msk, unsigned or_msk) {
+        unsigned addr, unsigned and_msk, unsigned or_msk) {
     constexpr auto fc = function_code::mask_write_register;
     check_for_exception(src, fc);
 
@@ -335,19 +324,18 @@ size_t parse_mask_write_register_response(std::span<const uint8_t> src,
     return p - src.data();
 }
 
-size_t serialize_read_write_multiple_registers_request(
-            std::span<uint8_t> dst,
-            unsigned addr_wr, const std::vector<uint16_t>& regs_wr,
-            unsigned addr_rd, size_t cnt_rd) {
+size_t serialize_read_write_multiple_registers_request(std::span<uint8_t> dst,
+        unsigned addr_wr, const std::vector<uint16_t>& regs_wr,
+        unsigned addr_rd, size_t cnt_rd) {
     validate_argument(addr_wr, u16_min, u16_max, "addr_wr");
     validate_argument(addr_rd, u16_min, u16_max, "addr_rd");
     auto cnt_wr = regs_wr.size();
+    validate_argument(cnt_wr, min_rdwr_write_registers,
+            max_rdwr_write_registers, "cnt_wr");
     validate_argument(
-        cnt_wr, min_rdwr_write_registers, max_rdwr_write_registers, "cnt_wr");
-    validate_argument(
-        cnt_rd, min_rdwr_read_registers, max_rdwr_read_registers, "cnt_rd");
+            cnt_rd, min_rdwr_read_registers, max_rdwr_read_registers, "cnt_rd");
     expects(dst.size() >= (read_write_multiple_registers_req_min_size +
-                           sizeof(uint16_t) * (cnt_wr - 1)),
+                                  sizeof(uint16_t) * (cnt_wr - 1)),
             "buffer too small");
 
     auto p = dst.data();
@@ -364,12 +352,12 @@ size_t serialize_read_write_multiple_registers_request(
 }
 
 size_t parse_read_write_multiple_registers_response(
-            std::span<const uint8_t> src,
-            std::vector<uint16_t>& regs, size_t cnt) {
+        std::span<const uint8_t> src, std::vector<uint16_t>& regs, size_t cnt) {
     static_assert(read_write_multiple_registers_rsp_min_size ==
-                  read_registers_rsp_min_size, "incompatible response type");
+                          read_registers_rsp_min_size,
+            "incompatible response type");
     return parse_read_registers_response(
-                src, function_code::read_write_multiple_registers, regs, cnt);
+            src, function_code::read_write_multiple_registers, regs, cnt);
 }
 
 size_t serialize_read_device_identification_request(std::span<uint8_t> dst) {
@@ -386,11 +374,8 @@ size_t serialize_read_device_identification_request(std::span<uint8_t> dst) {
     return p - dst.data();
 }
 
-size_t parse_read_device_identification_response(
-    std::span<const uint8_t> src,
-    std::string& vendor,
-    std::string& product,
-    std::string& version) {
+size_t parse_read_device_identification_response(std::span<const uint8_t> src,
+        std::string& vendor, std::string& product, std::string& version) {
     constexpr auto fc = function_code::read_device_identification;
     check_for_exception(src, fc);
 
@@ -418,7 +403,7 @@ size_t parse_read_device_identification_response(
     validate_field(more == 0, "more");
     validate_field(number_of_objects == 3, "number of objects");
 
-    auto left = [&](auto p){ return src.size() - (p - src.data()); };
+    auto left = [&](auto p) { return src.size() - (p - src.data()); };
     object_id oid;
     size_t olen;
     for (size_t i = 0; i < number_of_objects; ++i) {

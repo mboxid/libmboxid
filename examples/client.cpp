@@ -17,8 +17,7 @@ int main() {
     try {
         main_();
         return 0;
-    }
-    catch (const mboxid::exception& e) {
+    } catch (const mboxid::exception& e) {
         std::cerr << e.code() << ": " << e.what() << "\n";
     }
 

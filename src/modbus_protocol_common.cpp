@@ -18,17 +18,17 @@ void parse_mbap_header(std::span<const uint8_t> src, mbap_header& header) {
     fetch8(header.unit_id, p);
 
     if (header.protocol_id != 0)
-        throw mboxid_error(errc::parse_error,
-                           "mbap header: protocol identifier invalid");
+        throw mboxid_error(
+                errc::parse_error, "mbap header: protocol identifier invalid");
 
     if ((header.length < (min_pdu_size + sizeof(header.unit_id))) ||
-         header.length > (max_pdu_size + sizeof(header.unit_id)))
-        throw mboxid_error(errc::parse_error,
-                           "mbap header: length field invalid");
+            header.length > (max_pdu_size + sizeof(header.unit_id)))
+        throw mboxid_error(
+                errc::parse_error, "mbap header: length field invalid");
 }
 
-size_t serialize_mbap_header(std::span<uint8_t> dst,
-                             const mbap_header& header) {
+size_t serialize_mbap_header(
+        std::span<uint8_t> dst, const mbap_header& header) {
     expects(dst.size() >= mbap_header_size, "buffer too small");
 
     uint8_t* p = dst.data();
@@ -39,9 +39,8 @@ size_t serialize_mbap_header(std::span<uint8_t> dst,
     return p - dst.data();
 }
 
-std::size_t parse_bits(std::span<const uint8_t> src,
-                       std::vector<bool>& bits, std::size_t cnt)
-{
+std::size_t parse_bits(std::span<const uint8_t> src, std::vector<bool>& bits,
+        std::size_t cnt) {
     auto byte_count = bit_to_byte_count(cnt);
 
     expects(src.size() >= byte_count, "too few bytes");
@@ -61,9 +60,7 @@ std::size_t parse_bits(std::span<const uint8_t> src,
     return byte_count;
 }
 
-size_t serialize_bits(std::span<uint8_t> dst,
-                             const std::vector<bool>& bits)
-{
+size_t serialize_bits(std::span<uint8_t> dst, const std::vector<bool>& bits) {
     auto byte_count = bit_to_byte_count(bits.size());
 
     expects(dst.size() >= byte_count, "buffer too small");
@@ -83,8 +80,7 @@ size_t serialize_bits(std::span<uint8_t> dst,
 }
 
 std::size_t parse_regs(std::span<const uint8_t> src,
-                       std::vector<uint16_t>& regs, std::size_t cnt)
-{
+        std::vector<uint16_t>& regs, std::size_t cnt) {
     auto byte_count = cnt * sizeof(uint16_t);
 
     expects(src.size() >= byte_count, "too few bytes");
@@ -96,8 +92,8 @@ std::size_t parse_regs(std::span<const uint8_t> src,
     return (byte_count);
 }
 
-std::size_t serialize_regs(std::span<uint8_t> dst,
-                           const std::vector<uint16_t>& regs) {
+std::size_t serialize_regs(
+        std::span<uint8_t> dst, const std::vector<uint16_t>& regs) {
     expects(dst.size() >= (regs.size() * sizeof(uint16_t)), "buffer too small");
 
     uint8_t* p = dst.data();

@@ -22,8 +22,7 @@ TEST(ExceptionsTest, GeneralError) {
     mboxid_error err(errc::invalid_argument, "hugo");
 
     EXPECT_EQ(err.code().category(), mboxid_category());
-    EXPECT_EQ(err.code().value(),
-              static_cast<int>(errc::invalid_argument));
+    EXPECT_EQ(err.code().value(), static_cast<int>(errc::invalid_argument));
     EXPECT_THAT(err.what(), HasSubstr("hugo"));
     EXPECT_THAT(err.what(), HasSubstr("invalid argument"));
 }
@@ -40,8 +39,8 @@ TEST(ErrorCodeTest, IsErrorCodeEnum) {
 
 TEST(ExceptionTest, ModbusException) {
     {
-        system_error err(static_cast<int>(
-                            errc::modbus_exception_illegal_function));
+        system_error err(
+                static_cast<int>(errc::modbus_exception_illegal_function));
         EXPECT_FALSE(is_modbus_exception(err));
     }
     {

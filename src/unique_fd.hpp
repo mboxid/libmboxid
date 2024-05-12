@@ -20,16 +20,14 @@ public:
     unique_fd() : fd{-1} {}
     explicit unique_fd(int fd) : fd{fd} {}
 
-    unique_fd(unique_fd&& other)  noexcept : fd{other.release()} {}
+    unique_fd(unique_fd&& other) noexcept : fd{other.release()} {}
 
-    unique_fd& operator=(unique_fd&& other)  noexcept {
+    unique_fd& operator=(unique_fd&& other) noexcept {
         reset(other.release());
         return *this;
     }
 
-    ~unique_fd() {
-        reset();
-    }
+    ~unique_fd() { reset(); }
 
     [[nodiscard]] int get() const { return fd; }
 
@@ -49,7 +47,7 @@ public:
              * > reported by close(), the file descriptor is guaranteed to be
              * > closed.
              */
-            (void) close(fd);
+            (void)close(fd);
         }
         fd = new_fd;
     }
@@ -62,7 +60,6 @@ public:
 
 private:
     int fd;
-
 };
 
 } // namespace mboxid

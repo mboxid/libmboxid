@@ -30,7 +30,7 @@ public:
     ~impl();
 
     void set_server_addr(const std::string& host, const std::string& service,
-                         net::ip_protocol_version ip_version);
+            net::ip_protocol_version ip_version);
 
     void set_backend(std::unique_ptr<backend_connector> backend_);
     backend_connector* borrow_backend(); // provided for unit tests
@@ -45,9 +45,11 @@ private:
     using timestamp = std::chrono::time_point<std::chrono::steady_clock>;
     static constexpr auto never = timestamp::max();
 
-    struct cmd_stop { };
+    struct cmd_stop {};
 
-    struct cmd_close_connection { client_id id; };
+    struct cmd_close_connection {
+        client_id id;
+    };
 
     using cmd_queue_entry = std::variant<cmd_stop, cmd_close_connection>;
 

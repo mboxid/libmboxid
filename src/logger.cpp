@@ -45,8 +45,6 @@ void install_logger(logger_unique_ptr new_logger) {
     logger = std::move(new_logger);
 }
 
-const logger_base* borrow_logger() {
-    return logger.get();
-}
+const logger_base* borrow_logger() { return logger.get(); }
 
-} // namespace mboxid
+} // namespace mboxid::log

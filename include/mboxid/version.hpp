@@ -7,7 +7,7 @@
 namespace mboxid {
 
 extern const char* get_version();
-extern void get_version(int& major, int& minor, int &patch);
+extern void get_version(int& major, int& minor, int& patch);
 extern const char* get_verbose_version();
 
 extern const char* get_vendor();
