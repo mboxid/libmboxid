@@ -23,12 +23,12 @@ std::string mboxid_cat::message(int ec) const {
         return "modbus exception illegal data address";
     case errc::modbus_exception_illegal_data_value:
         return "modbus exception illegal data value";
-    case errc::modbus_exception_slave_or_server_failure:
-        return "modbus exception slave or server failure";
+    case errc::modbus_exception_server_device_failure:
+        return "modbus exception server device failure";
     case errc::modbus_exception_acknowledge:
         return "modbus exception acknowledge";
-    case errc::modbus_exception_slave_or_server_busy:
-        return "modbus exception slave or server busy";
+    case errc::modbus_exception_server_device_busy:
+        return "modbus exception server device busy";
     case errc::modbus_exception_negative_acknowledge:
         return "modbus exception negative acknowledge";
     case errc::modbus_exception_memory_parity:
