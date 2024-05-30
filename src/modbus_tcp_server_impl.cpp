@@ -325,7 +325,7 @@ void modbus_tcp_server::impl::establish_connection(int fd, unsigned events) {
 
     auto authorized = backend->authorize(client->id, client->addr, sa, addrlen);
 
-    log::info("client(id={:#x}) connecting from [{}]:{} {}", client->id,
+    log::auth("client(id={:#x}) connecting from [{}]:{} {}", client->id,
             client->addr.host, client->addr.service,
             authorized ? "accepted" : "denied");
 
@@ -352,7 +352,7 @@ void modbus_tcp_server::impl::close_client_by_id(client_id id) {
             clients, [id](auto& client) { return client->id == id; });
     if (cnt) {
         backend->disconnect(id);
-        log::info("client(id={:#x}) disconnected", id);
+        log::auth("client(id={:#x}) disconnected", id);
     } else
         log::warning("close_client_by_id(): client(id={:#x}) not found", id);
 }
