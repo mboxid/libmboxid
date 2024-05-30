@@ -106,7 +106,7 @@ public:
     virtual void ticker() {}
 
     /*!
-     * \defgroup backend_connector_usual_return_values
+     * \defgroup backend_return_doc Backend common return values
      *
      * \return
      *      errc::none on success, otherwise a code describing the error. If
@@ -136,7 +136,7 @@ public:
      * \param[in] cnt Number of contiguous coils to read.
      * \param[out] bits Status of the requested coils
      *
-     * \copydetails backend_connector_usual_return_values
+     * \copydetails backend_return_doc
      */
     virtual errc read_coils([[maybe_unused]] unsigned addr,
             [[maybe_unused]] std::size_t cnt,
@@ -154,7 +154,7 @@ public:
      * \param[in] cnt Number of contiguous discrete inputs to read.
      * \param[out] bits Status of the requested discrete inputs.
      *
-     * \copydetails backend_connector_usual_return_values
+     * \copydetails backend_return_doc
      */
     virtual errc read_discrete_inputs([[maybe_unused]] unsigned addr,
             [[maybe_unused]] std::size_t cnt,
@@ -173,7 +173,7 @@ public:
      * \param[in] cnt Number of contiguous holding registers to read.
      * \param[out] regs Status of the requested holding registers.
      *
-     * \copydetails backend_connector_usual_return_values
+     * \copydetails backend_return_doc
      */
     virtual errc read_holding_registers([[maybe_unused]] unsigned addr,
             [[maybe_unused]] std::size_t cnt,
@@ -192,7 +192,7 @@ public:
      * \param[in] cnt Number of contiguous input registers to read.
      * \param[out] regs Status of the requested input registers.
      *
-     * \copydetails backend_connector_usual_return_values
+     * \copydetails backend_return_doc
      */
     virtual errc read_input_registers([[maybe_unused]] unsigned addr,
             [[maybe_unused]] std::size_t cnt,
@@ -209,7 +209,7 @@ public:
      * \param[in] addr Address of the first coil.
      * \param[in] bits Values to write to the coils.
      *
-     * \copydetails backend_connector_usual_return_values
+     * \copydetails backend_return_doc
      */
     virtual errc write_coils([[maybe_unused]] unsigned addr,
             [[maybe_unused]] const std::vector<bool>& bits) {
@@ -225,7 +225,7 @@ public:
      * \param[in] addr Address of the first holding register.
      * \param[in] regs Values to write to the holding registers.
      *
-     * \copydetails backend_connector_usual_return_values
+     * \copydetails backend_return_doc
      */
     virtual errc write_holding_registers([[maybe_unused]] unsigned addr,
             [[maybe_unused]] const std::vector<std::uint16_t>& regs) {
@@ -253,7 +253,7 @@ public:
      * \param[in] cnt_rd Number of contiguous holding registers to read.
      * \param[out] regs_rd Status of the requested holding registers.
      *
-     * \copydetails backend_connector_usual_return_values
+     * \copydetails backend_return_doc
      */
     virtual errc write_read_holding_registers([[maybe_unused]] unsigned addr_wr,
             [[maybe_unused]] const std::vector<std::uint16_t>& regs_wr,
@@ -280,7 +280,7 @@ public:
      * \param[out] version Version of the server application.
      * \return
      *
-     * \copydetails backend_connector_usual_return_values
+     * \copydetails backend_return_doc
      */
     virtual errc get_basic_device_identification(
             std::string& vendor, std::string& product, std::string& version) {

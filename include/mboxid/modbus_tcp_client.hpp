@@ -106,7 +106,7 @@ public:
     void set_unit_id(unsigned id);
 
     /*!
-     * \defgroup modbus_tcp_client_usual_exceptions
+     * \defgroup client_exceptions_doc Modbus client class common exceptions
      *
      * \throw mboxid::system_error
      *      A system call returned an error that is not handled further by the
@@ -132,7 +132,7 @@ public:
      *      Number of coils to read.
      * \return State of the coils.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     std::vector<bool> read_coils(unsigned addr, size_t cnt);
 
@@ -145,7 +145,7 @@ public:
      *      Number of discrete inputs to read.
      * \return State of the discrete inputs.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     std::vector<bool> read_discrete_inputs(unsigned addr, size_t cnt);
 
@@ -158,7 +158,7 @@ public:
      *      Number of holding registers to read.
      * \return State of the holding registers.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     std::vector<uint16_t> read_holding_registers(unsigned addr, size_t cnt);
 
@@ -171,7 +171,7 @@ public:
      *      Number of input registers to read.
      * \return State of the input registers.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     std::vector<uint16_t> read_input_registers(unsigned addr, size_t cnt);
 
@@ -181,7 +181,7 @@ public:
      * \param[in] addr Address of the coil (counting starts with 0).
      * \param[in] on If true 1 is written to the coil, otherwise 0.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     void write_single_coil(unsigned addr, bool on);
 
@@ -191,7 +191,7 @@ public:
      * \param[in] addr Address of the register (counting starts with 0).
      * \param[in] val The value to write to the register.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     void write_single_register(unsigned addr, unsigned val);
 
@@ -201,7 +201,7 @@ public:
      * \param[in] addr Address of the first coil (counting starts with 0).
      * \param[in] bits List of values to write to the coils.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     void write_multiple_coils(unsigned addr, const std::vector<bool>& bits);
 
@@ -213,7 +213,7 @@ public:
      * \param[in] regs
      *      List of values to write to the holding registers.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     void write_multiple_registers(
             unsigned addr, const std::vector<uint16_t>& regs);
@@ -225,7 +225,7 @@ public:
      * \param[in] and_msk Mask for a bitwise _AND_ operation.
      * \param or_msk Mask for a bitwise _OR_ operation.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      *
      * The register is modified as follows:
      * \code
@@ -249,7 +249,7 @@ public:
      *      Number of input registers to read.
      * \return State of the read holding registers.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     std::vector<uint16_t> read_write_multiple_registers(unsigned addr_wr,
             const std::vector<uint16_t>& regs_wr, unsigned addr_rd,
@@ -262,7 +262,7 @@ public:
      * \param[out] product Product name.
      * \param[out] version Version of the server application.
      *
-     * \copydetails modbus_tcp_client_usual_exceptions
+     * \copydetails client_exceptions_doc
      */
     void read_device_identification(
             std::string& vendor, std::string& product, std::string& version);
