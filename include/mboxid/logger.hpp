@@ -38,6 +38,7 @@ public:
     virtual ~logger_base() = default;
 };
 
+//! Smart pointer for logger class.
 using logger_unique_ptr = std::unique_ptr<const logger_base>;
 
 //! Create an instance of the standard logger.

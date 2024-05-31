@@ -103,11 +103,29 @@ public:
  */
 class system_error : public exception {
 public:
+
+    /*!
+     * Constructor.
+     *
+     * \param[in] ev Underlying error code in the enumeration std::errc.
+     */
     explicit system_error(int ev) : exception(ev, std::system_category()) {}
 
+    /*!
+     * Constructor.
+     *
+     * \param[in] ev Underlying error code in the enumeration std::errc.
+     * \param[in] what_arg Descriptive message.
+     */
     system_error(int ev, const char* what_arg)
             : exception(ev, std::system_category(), what_arg) {}
 
+    /*!
+     * Constructor.
+     *
+     * \param[in] ev Underlying error code in the enumeration std::errc.
+     * \param[in] what_arg Descriptive message.
+     */
     system_error(int ev, const std::string& what_arg)
             : exception(ev, std::system_category(), what_arg) {}
 };
@@ -120,11 +138,14 @@ public:
  */
 class mboxid_error : public exception {
 public:
-    explicit mboxid_error(errc errc) : exception(make_error_code(errc)) {}
+    //! Constructs mboxid_error from errc enum \a e.
+    explicit mboxid_error(errc e) : exception(make_error_code(e)) {}
 
-    mboxid_error(errc errc, const char* what_arg)
-            : exception(make_error_code(errc), what_arg) {}
+    //! Constructs mboxid_error from errc enum \a e and a descriptive message.
+    mboxid_error(errc e, const char* what_arg)
+            : exception(make_error_code(e), what_arg) {}
 
+    //! Constructs mboxid_error from errc enum \a e and a descriptive message.
     mboxid_error(errc errc, const std::string& what_arg)
             : exception(make_error_code(errc), what_arg) {}
 };
