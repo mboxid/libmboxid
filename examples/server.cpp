@@ -1,6 +1,9 @@
 // Copyright (c) 2024, Franz Hollerer.
 // SPDX-License-Identifier: BSD-3-Clause
-
+/*!
+ * \file
+ * Example of a Modbus TCP server application.
+ */
 #include <cstdlib>
 #include <csignal>
 #include <system_error>
@@ -26,6 +29,7 @@ static void wait_signal(const sigset_t* set) {
         throw std::system_error(err, std::system_category(), "sigwait");
 }
 
+//! Connects the server with the user application.
 class backend_connector : public mboxid::backend_connector {
 public:
     mboxid::errc read_coils(
@@ -40,12 +44,12 @@ public:
             unsigned addr, const std::vector<bool>& bits) override;
     mboxid::errc write_holding_registers(
             unsigned addr, const std::vector<std::uint16_t>& regs) override;
-
     mboxid::errc write_read_holding_registers(unsigned addr_wr,
             const std::vector<std::uint16_t>& regs_wr, unsigned addr_rd,
             std::size_t cnt_rd, std::vector<std::uint16_t>& regs_rd) override;
 
 private:
+    // Exemplary application data.
     std::vector<bool> coils{false, false, false, false, false, false, false,
             false, false, false};
     std::vector<bool> discrete_inputs{
@@ -142,7 +146,7 @@ mboxid::errc backend_connector::write_read_holding_registers(
     return mboxid::errc::none;
 }
 
-/**
+/*!
  * Entry point for a separate thread which runs the Modbus server.
  * @param server Smart pointer to an instance of the server class.
  *
@@ -166,6 +170,14 @@ static void server_thread(std::shared_ptr<mboxid::modbus_tcp_server> server) {
     }
 }
 
+/*!
+ * Manages the life cycle of the server.
+ *
+ * The main function manages the life cycle of the server. It starts the
+ * server in a separate thread, and blocks till the user requests the
+ * process to terminate (SIGTERM). Thereafter, it tells the server to shut
+ * shut down and waits until the server thread has finished.
+ */
 int main() {
     sigset_t blocked;
     block_signals(&blocked);

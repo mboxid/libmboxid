@@ -19,8 +19,8 @@ Support for serial communication lines and/or a port to the Windows
 operating system is not panned.
 
 To get started, see [server.cpp](./examples/server.cpp) and
-[client.cpp](./examples/client.cpp). The examples show how to implement
-a Modbus server and client application with libmboxid.
+[client.cpp](./examples/client.cpp). The examples show how to implement Modbus server and
+client applications with libmboxid.
 
 ## Installation instructions
 

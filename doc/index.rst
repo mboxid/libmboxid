@@ -3,14 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Modbus TCP C++ library for unixoid systems
-==========================================
+libmboxid
+=========
+
+A Modbus TCP C++ library for unixoid systems.
 
 .. toctree::
-    :numbered:
-    :maxdepth: 2
+   :numbered:
+   :maxdepth: 2
 
-    introduction
-    server_howto
-    client_howto
-    api/library_root
+   user_manual
+   release_notes
+   api/library_root

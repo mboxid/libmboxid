@@ -99,7 +99,7 @@ public:
      * address(es). It accepts incoming connections and processes requests till
      * shutdown() is  called.
      *
-     * It is suggested to execute run() in its own thread. It is save to call
+     * It is suggested to execute run() in its own thread. It is safe to call
      * shutdown() from a different thread.
      *
      * \throw mboxid::system_error

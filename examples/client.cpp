@@ -1,9 +1,13 @@
 // Copyright (c) 2024, Franz Hollerer.
 // SPDX-License-Identifier: BSD-3-Clause
-
+/*!
+ * \file
+ * Example of a Modbus TCP server application.
+ */
 #include <iostream>
 #include <mboxid/modbus_tcp_client.hpp>
 
+//! Connects to the server and queries the state of some coils.
 void main_() {
     mboxid::modbus_tcp_client mb;
 
@@ -13,6 +17,7 @@ void main_() {
         std::cout << "coils[" << i << "]: " << coils[i] << "\n";
 }
 
+//! Wrapper around main_() that handles exceptions from the library.
 int main() {
     try {
         main_();
