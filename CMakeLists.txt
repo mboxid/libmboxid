@@ -14,7 +14,6 @@ add_compile_options(-Wall -Wextra)
 add_subdirectory(src)
 add_subdirectory(tests)
 add_subdirectory(examples)
-add_subdirectory(doxygen)
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
