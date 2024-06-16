@@ -1,5 +1,5 @@
 
-![logo](./doc/mboxid_logo.svg)
+![logo](./docs/mboxid_logo.svg)
 
 ---
 # libmboxid
@@ -74,7 +74,7 @@ $ sudo apt install doxygen python3-exhale
 To generate the documentation:
 
 ```
-$ cd doc
+$ cd docs
 $ make html
 ```
 
