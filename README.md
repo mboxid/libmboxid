@@ -69,6 +69,7 @@ documentation. Under Debian the required packages can be installed with:
 
 ```
 $ sudo apt install doxygen python3-exhale
+$ sudo apt install python3-sphinx-rtd-theme
 ```
 
 To generate the documentation:

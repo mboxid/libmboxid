@@ -9,7 +9,7 @@
 project = 'libmboxid'
 copyright = '2024, Franz Hollerer'
 author = 'Franz Hollerer'
-release = '0.1.0'
+release = '1.0.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -40,11 +40,7 @@ exhale_args = {
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
-html_theme_options = {
-    'body_min_width': '50em',
-    'body_max_width': 'none',
-}
+html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 html_logo = './mboxid_logo.svg'
 primary_domain = 'cpp'

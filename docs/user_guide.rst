@@ -1,5 +1,5 @@
-User manual
-===========
+User guide
+==========
 
 This chapter provides a short tour through libmodbus.
 
@@ -15,6 +15,7 @@ access to the specification.
 libmboxid implements Modbus TCP/IP. Future releases may support TLS.
 Support for serial communication lines and/or a port to the Windows
 operating system is not panned.
+
 
 Quick start
 -----------
@@ -90,15 +91,16 @@ Modbus TCP server
 
 Follow the steps below to write your own Modbus TCP server application:
 
-1. Implement a :class:`mboxid::backend_connector`. This class connects
-    the Modbus server with the user application.
+1. Implement a :class:`mboxid::backend_connector`. \
+   The class connects the Modbus server with the user application.
 2. Create an instance of :class:`mboxid::modbus_tcp_server`.
 3. Configure the server instance:
+
     * :func:`mboxid::modbus_tcp_server::set_backend`
     * :func:`mboxid::modbus_tcp_server::set_server_addr` (optional)
     * :func:`mboxid::modbus_tcp_server::set_idle_timeout` (optional)
-    * :func:`mboxid::modbus_tcp_server::set_request_complete_timeout`
-        (optional)
+    * :func:`mboxid::modbus_tcp_server::set_request_complete_timeout` (optional)
+
 4. Execute :func:`mboxid::modbus_tcp_server::run`
 5. Stop the server by a call to :func:`mboxid::modbus_tcp_server::shutdown`
 
@@ -129,15 +131,17 @@ Modbus TCP client
 Follow the steps below to write your own Modbus TCP client application:
 
 1. Create an instance of :class:`mboxid::modbus_tcp_client`.
-2. Connect to the server by calling
+2. Connect to the server by calling \
    :func:`mboxid::modbus_tcp_client::connect_to_server`.
-3. Set time limit for responses with
+3. Set time limit for responses with \
    :func:`mboxid::modbus_tcp_client::set_response_timeout`.
 4. Read/write from/to the server:
+
     * :func:`mboxid::modbus_tcp_client::read_coils`
     * :func:`mboxid::modbus_tcp_client::read_discrete_inputs`
     * :func:`mboxid::modbus_tcp_client::write_single_coil`
     * etc.
+
 5. Use :func:`mboxid::modbus_tcp_client::disconnect` to disconnect from
    the server.
 
