@@ -7,7 +7,6 @@ libmboxid
 =========
 
 A Modbus TCP C++ library for unixoid systems.
-`--- Get it on GitHub --- <https://github.com/mboxid/libmboxid>`_
 
 .. toctree::
    :numbered: 3

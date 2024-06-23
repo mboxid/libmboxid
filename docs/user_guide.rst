@@ -20,9 +20,13 @@ operating system is not panned.
 Quick start
 -----------
 
-For a quick start see :ref:`section_server_example` and
-:ref:`section_client_example`. The examples show how to implement Modbus
-TCP server and client applications with libmboxid.
+Get the library from
+`GitHub <https://github.com/mboxid/libmboxid>`_
+and follow the instructions there to build and install it.
+
+Take a look at :ref:`section_server_example` and
+:ref:`section_client_example` to see how to implement a Modbus
+TCP server and client respectively.
 
 Data model
 ----------
