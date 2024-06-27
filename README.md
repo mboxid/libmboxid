@@ -22,6 +22,10 @@ To get started, see [server.cpp](./examples/server.cpp) and
 [client.cpp](./examples/client.cpp). The examples show how to implement Modbus server and
 client applications with libmboxid.
 
+Detailed information about libmboxid can be found in the
+[User Guide on Read the Docs](https://libmboxid.readthedocs.io/).
+
+
 ## Installation instructions
 
 ### Building the library
