@@ -398,17 +398,18 @@ static size_t process_read_device_information(backend_connector& backend,
     validate_exact_req_length(req, read_device_identification_req_size);
 
     function_code fc;
-    mei_type mei;
+    mei_type type;
     read_device_id_code code;
     object_id id;
 
     auto* p_req = req.data();
     p_req += fetch8(fc, p_req);
-    p_req += fetch8(mei, p_req);
+    p_req += fetch8(type, p_req);
     p_req += fetch8(code, p_req);
     fetch8(id, p_req);
 
-    if ((mei != mei_type::modbus) || (code != read_device_id_code::basic))
+    if ((type != mei_type::read_device_identification) ||
+            (code != read_device_id_code::basic))
         return serialize_exception_response(
                 rsp, fc, errc::modbus_exception_illegal_data_value);
     if (id != object_id::vendor_name)
@@ -433,7 +434,7 @@ static size_t process_read_device_information(backend_connector& backend,
 
     auto p_rsp = rsp.data();
     p_rsp += store8(p_rsp, fc);
-    p_rsp += store8(p_rsp, mei_type::modbus);
+    p_rsp += store8(p_rsp, mei_type::read_device_identification);
     p_rsp += store8(p_rsp, code);
     p_rsp += store8(p_rsp, read_device_id_code::basic); // conformity level
     p_rsp += store8(p_rsp, 0x00);                       // more follows: no
@@ -455,6 +456,30 @@ static size_t process_read_device_information(backend_connector& backend,
     return p_rsp - rsp.data();
 }
 
+static size_t process_mei_transport(backend_connector& backend,
+        std::span<const uint8_t> req, std::span<uint8_t> rsp) {
+    // parse request
+    validate_min_req_length(req, mei_transport_req_min_size);
+
+    function_code fc;
+    mei_type type;
+
+    auto* p_req = req.data();
+    p_req += fetch8(fc, p_req);
+    fetch8(type, p_req);
+
+    switch (type) {
+    case mei_type::read_device_identification:
+        return process_read_device_information(backend, req, rsp);
+    case mei_type::CANopen_general_reference_command:
+        [[fallthrough]];
+    default:
+        return serialize_exception_response(
+                rsp, fc, errc::modbus_exception_illegal_function);
+    }
+}
+
+// parse request
 size_t server_engine(backend_connector& backend, std::span<const uint8_t> req,
         std::span<uint8_t> rsp) {
     validate_min_req_length(req, min_pdu_size);
@@ -481,8 +506,8 @@ size_t server_engine(backend_connector& backend, std::span<const uint8_t> req,
         return process_mask_write_registers(backend, req, rsp);
     case function_code::read_write_multiple_registers:
         return process_read_write_multiple_registers(backend, req, rsp);
-    case function_code::read_device_identification:
-        return process_read_device_information(backend, req, rsp);
+    case function_code::mei_transport:
+        return process_mei_transport(backend, req, rsp);
     default:
         return serialize_exception_response(
                 rsp, fc, errc::modbus_exception_illegal_function);

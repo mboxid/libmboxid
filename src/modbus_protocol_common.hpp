@@ -37,6 +37,7 @@ constexpr size_t mask_write_register_req_size{7};
 constexpr size_t mask_write_register_rsp_size{7};
 constexpr size_t read_write_multiple_registers_req_min_size{12};
 constexpr size_t read_write_multiple_registers_rsp_min_size{4};
+constexpr size_t mei_transport_req_min_size{3};
 constexpr size_t read_device_identification_req_size{4};
 constexpr size_t read_device_identification_rsp_min_size{10};
 constexpr size_t exception_rsp_size{2};
@@ -95,7 +96,7 @@ enum class function_code {
     write_multiple_registers = 0x10,
     mask_write_register = 0x16,
     read_write_multiple_registers = 0x17,
-    read_device_identification = 0x2b,
+    mei_transport = 0x2b,
     exception = 0x80,
 };
 
@@ -109,8 +110,10 @@ enum class read_device_id_code {
     basic = 0x01,
 };
 
+//! Protocol transported within the Modus Encapsulated Interface (MEI).
 enum class mei_type {
-    modbus = 0x0e,
+    CANopen_general_reference_command = 0x0d,
+    read_device_identification = 0x0e,
 };
 
 static inline size_t get_pdu_size(const mbap_header& header) {

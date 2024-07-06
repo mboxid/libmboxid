@@ -366,8 +366,8 @@ size_t serialize_read_device_identification_request(std::span<uint8_t> dst) {
 
     auto p = dst.data();
 
-    p += store8(p, function_code::read_device_identification);
-    p += store8(p, mei_type::modbus);
+    p += store8(p, function_code::mei_transport);
+    p += store8(p, mei_type::read_device_identification);
     p += store8(p, read_device_id_code::basic);
     p += store8(p, object_id::vendor_name);
 
@@ -376,7 +376,7 @@ size_t serialize_read_device_identification_request(std::span<uint8_t> dst) {
 
 size_t parse_read_device_identification_response(std::span<const uint8_t> src,
         std::string& vendor, std::string& product, std::string& version) {
-    constexpr auto fc = function_code::read_device_identification;
+    constexpr auto fc = function_code::mei_transport;
     check_for_exception(src, fc);
 
     if (src.size() < read_device_identification_rsp_min_size)
@@ -398,7 +398,8 @@ size_t parse_read_device_identification_response(std::span<const uint8_t> src,
     p += fetch8(number_of_objects, p);
 
     validate_field(fc_rsp == fc, "function code");
-    validate_field(mei_type_rsp == mei_type::modbus, "mei type");
+    validate_field(
+            mei_type_rsp == mei_type::read_device_identification, "mei type");
     validate_field(id_code_rsp == read_device_id_code::basic, "id code");
     validate_field(more == 0, "more");
     validate_field(number_of_objects == 3, "number of objects");

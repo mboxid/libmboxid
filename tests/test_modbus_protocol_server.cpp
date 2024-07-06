@@ -62,26 +62,9 @@ TEST(ModbusProtocolServerTest, ReadCoils) {
         // successful request
         BackendConnectorMock backend;
         BoolVec bits{
-                // NOLINTNEXTLINE(*-use-bool-literals)
-                1,
-                0,
-                1,
-                1,
-                0,
-                0,
-                1,
-                1,
-                1,
-                1,
-                0,
-                1,
-                0,
-                1,
-                1,
-                0,
-                1,
-                0,
-                1,
+                // NOLINTBEGIN(*-use-bool-literals)
+                1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1,
+                // NOLINTEND(*-use-bool-literals)
         };
         using testing::_;
         EXPECT_CALL(backend, read_coils(0x13, 0x13, _))
@@ -131,9 +114,11 @@ TEST(ModbusProtocolServerTest, ReadDiscreteInputs) {
     {
         // successful request
         BackendConnectorMock backend;
-        BoolVec bits{// NOLINTNEXTLINE(*-use-bool-literals)
-                0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1,
-                1};
+        BoolVec bits{
+                // NOLINTBEGIN(*-use-bool-literals)
+                0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1
+                // NOLINTEND(*-use-bool-literals)
+        };
         using testing::_;
         EXPECT_CALL(backend, read_discrete_inputs(0xc4, 0x16, _))
                 .WillOnce(DoAll(SetArgReferee<2>(bits), Return(errc::none)));
@@ -551,6 +536,36 @@ TEST(ModbusProtocolServerTest, ReadWriteMultipleRegisters) {
         U8Vec req{0x17, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x02,
                 0x00, 0x00};
         U8Vec rsp_expected{0x97, 0x02};
+        U8Vec rsp(max_pdu_size);
+
+        auto cnt = server_engine(backend, req, rsp);
+        EXPECT_EQ(cnt, rsp_expected.size());
+        rsp.resize(cnt);
+        EXPECT_EQ(rsp, rsp_expected);
+    }
+}
+
+TEST(ModbusProtocolServerTest, ModbusEncapsulatedInterfaceTransport) {
+    // We only test invalid/unsupported request here. The only supported
+    // encapsulated command is "Read Device Identification", which has
+    // its own test case.
+    {
+        // CANopen general reference request --> illegal function
+        mboxid::backend_connector backend;
+        U8Vec req{0x2b, 0x0d, 0x00};
+        U8Vec rsp_expected{0x80 | 0x2b, 0x01};
+        U8Vec rsp(max_pdu_size);
+
+        auto cnt = server_engine(backend, req, rsp);
+        EXPECT_EQ(cnt, rsp_expected.size());
+        rsp.resize(cnt);
+        EXPECT_EQ(rsp, rsp_expected);
+    }
+    {
+        // Other request != Read Device Identification --> illegal function
+        mboxid::backend_connector backend;
+        U8Vec req{0x2b, 0x00, 0x00};
+        U8Vec rsp_expected{0x80 | 0x2b, 0x01};
         U8Vec rsp(max_pdu_size);
 
         auto cnt = server_engine(backend, req, rsp);
