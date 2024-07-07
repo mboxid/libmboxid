@@ -16,7 +16,6 @@ libmboxid implements Modbus TCP/IP. Future releases may support TLS.
 Support for serial communication lines and/or a port to the Windows
 operating system is not panned.
 
-
 Quick start
 -----------
 
@@ -27,6 +26,27 @@ and follow the instructions there to build and install it.
 Take a look at :ref:`section_server_example` and
 :ref:`section_client_example` to see how to implement a Modbus
 TCP server and client respectively.
+
+Other implementations
+---------------------
+
+Consider the
+`FieldTalk C++ Modbus Libraries <https://www.modbusdriver.com/fieldtalk>`_
+if you are looking for commercial products with adequate customer support.
+The concept of a backend connector class was inspired by their Modbus server
+library.
+
+If you prefer open source software `libmodbus <https://libmodbus.org>`_
+might be a great choice. The library is ideal for implementing
+clients, i.e. for communicating with Modbus devices that act as server.
+The library has some flaws when it comes to the implementation of servers:
+
+- The library imposes multiplexing of clients on the application.
+- The library provides tables according to the specification, but lacks means
+  to connect them to the application. It misses a reasonable backend interface.
+
+The shortcomings of libmodbus for use as Modbus server were the motivation
+to start with our own open source Modbus TCP/IP C++ library.
 
 Data model
 ----------
