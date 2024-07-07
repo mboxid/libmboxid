@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(libmboxid VERSION 1.0.0
+project(libmboxid VERSION 1.1.0
     DESCRIPTION "A Modbus TCP C++ library for unixoid systems."
     LANGUAGES C CXX
     )
