@@ -36,10 +36,11 @@ if you are looking for commercial products with adequate customer support.
 The concept of a backend connector class was inspired by their Modbus server
 library.
 
-If you prefer open source software `libmodbus <https://libmodbus.org>`_
-might be a great choice. The library is ideal for implementing
+If you prefer open source software you might like
+`libmodbus <https://libmodbus.org>`_. The library is great for implementing
 clients, i.e. for communicating with Modbus devices that act as server.
-The library has some flaws when it comes to the implementation of servers:
+However, the library has some flaws when it comes to the implementation of
+servers:
 
 - The library imposes multiplexing of clients on the application.
 - The library provides tables according to the specification, but lacks means
