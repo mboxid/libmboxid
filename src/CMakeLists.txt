@@ -27,14 +27,14 @@ target_include_directories(mboxid PUBLIC
     )
 target_link_libraries(mboxid PRIVATE fmt)
 
+file(GLOB PUBLIC_HEADERS LIST_DIRECTORIES false CONFIGURE_DEPENDS
+        ${PROJECT_SOURCE_DIR}/include/mboxid/*.hpp)
+    
 target_sources(mboxid PUBLIC
     FILE_SET public_headers
     TYPE HEADERS
     BASE_DIRS ${PROJECT_SOURCE_DIR}/include
-    FILES
-        ${PROJECT_SOURCE_DIR}/include/mboxid/version.hpp
-        ${PROJECT_SOURCE_DIR}/include/mboxid/error.hpp
-        ${PROJECT_SOURCE_DIR}/include/mboxid/logger.hpp
+    FILES ${PUBLIC_HEADERS}
     )
 
 install(TARGETS mboxid EXPORT mboxidTargets FILE_SET public_headers)
