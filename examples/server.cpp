@@ -10,23 +10,37 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <initializer_list>
 #include <mboxid/modbus_tcp_server.hpp>
 
 static std::atomic<int> exit_code = EXIT_SUCCESS;
 
-static void block_signals(sigset_t* set) {
-    sigemptyset(set);
-    sigaddset(set, SIGINT);
-    sigaddset(set, SIGTERM);
-    if (auto err = pthread_sigmask(SIG_BLOCK, set, nullptr)) {
+static void block_signals() {
+    sigset_t set;
+
+    if (auto err = sigfillset(&set))
+        throw std::system_error(err, std::system_category(), "sigfillset");
+
+    if (auto err = pthread_sigmask(SIG_BLOCK, &set, nullptr))
         throw std::system_error(err, std::system_category(), "pthread_sigmask");
-    }
 }
 
-static void wait_signal(const sigset_t* set) {
+static int wait_signal(std::initializer_list<int> signal_list) {
+    sigset_t set;
+
+    if (auto err = sigemptyset(&set))
+        throw std::system_error(err, std::system_category(), "sigempty");
+
+    for (auto&& sig : signal_list) {
+        if (auto err = sigaddset(&set, sig))
+            throw std::system_error(err, std::system_category(), "sigaddset");
+    }
+
     int sig;
-    if (auto err = sigwait(set, &sig))
+    if (auto err = sigwait(&set, &sig))
         throw std::system_error(err, std::system_category(), "sigwait");
+
+    return sig;
 }
 
 //! Connects the server with the user application.
@@ -179,13 +193,12 @@ static void server_thread(std::shared_ptr<mboxid::modbus_tcp_server> server) {
  * shut down and waits until the server thread has finished.
  */
 int main() {
-    sigset_t blocked;
-    block_signals(&blocked);
+    block_signals();
 
     auto server = std::make_shared<mboxid::modbus_tcp_server>();
     auto server_thd = std::thread(server_thread, server);
 
-    wait_signal(&blocked);
+    (void)wait_signal({SIGINT, SIGTERM});
     server->shutdown();
     server_thd.join();
 
