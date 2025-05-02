@@ -6,6 +6,8 @@ FetchContent_Declare(fmt
     )
 FetchContent_MakeAvailable(fmt)
 
+find_package(OpenSSL 3.0 REQUIRED)
+
 configure_file(version.cpp.in version.cpp)
 
 add_library(mboxid
@@ -25,7 +27,7 @@ target_include_directories(mboxid PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
     )
-target_link_libraries(mboxid PRIVATE fmt)
+target_link_libraries(mboxid PRIVATE fmt OpenSSL::SSL)
 
 file(GLOB PUBLIC_HEADERS LIST_DIRECTORIES false CONFIGURE_DEPENDS
         ${PROJECT_SOURCE_DIR}/include/mboxid/*.hpp)
