@@ -423,7 +423,7 @@ void modbus_tcp_server::impl::execute_request(client_control_block* client) {
     client->rsp = rsp.subspan(0, cnt);
 }
 
-void modbus_tcp_server::impl::handle_request(int fd, unsigned int events) {
+void modbus_tcp_server::impl::handle_request(int fd, unsigned events) {
     validate_poll_events("handle_request", events, POLLHUP | POLLERR | POLLIN);
 
     auto client = find_client_by_fd(fd);
@@ -454,7 +454,7 @@ void modbus_tcp_server::impl::handle_request(int fd, unsigned int events) {
     }
 }
 
-void modbus_tcp_server::impl::send_response(int fd, unsigned int events) {
+void modbus_tcp_server::impl::send_response(int fd, unsigned events) {
     validate_poll_events(
             "receive_request", events, POLLHUP | POLLERR | POLLOUT);
     auto client = find_client_by_fd(fd);
